@@ -38,7 +38,7 @@ Uses convention of "in" for commands and "out" for things that would notify the 
 might not go this granular - have a single loans service?
 
 - the rationale for not doing this is that you would have the requests looking in the offers table which is something I
-  don't think should really happen.
+don't think should really happen.
 
 things like payments would do fulfilment etc
 
@@ -54,6 +54,13 @@ you'd probably want to do way more validation on the balances and accounts if yo
 to have some kind double entry bookkeeping system really?
 
 What about making offers to multiple people?
+
+- you'd want to send out multiple offers? Or you'd lock some offers for a certain amount of time?
+
+I'd probalby put more builders on classes, and also make some of the accesses private and final in this case
+
+The reason for Strings - makes it easier for conversion to kafka and vice versa but want to use bigdecimal for anything
+to do with calculating money, or alternatively it might be viable to use the java currency types
 
 ## Requires
 

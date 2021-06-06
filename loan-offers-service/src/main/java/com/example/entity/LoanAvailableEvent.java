@@ -9,20 +9,43 @@ public class LoanAvailableEvent {
     public String annualInterestRate;
     public String monthlyRepayment;
     public String totalRepayment;
-    //    private final List<LoanOffer> loanOffers;
+    public List<LoanOffer> loanOffers;
 
     public LoanAvailableEvent(
             boolean available,
             String requestedAmount,
             String annualInterestRate,
             String monthlyRepayment,
-            String totalRepayment) { // List<LoanOffer> loanOffers) {
+            String totalRepayment,
+            List<LoanOffer> loanOffers) {
         this.available = available;
         this.requestedAmount = requestedAmount;
         this.annualInterestRate = annualInterestRate;
         this.monthlyRepayment = monthlyRepayment;
         this.totalRepayment = totalRepayment;
-        //        this.loanOffers = loanOffers;
+        this.loanOffers = loanOffers;
+    }
+
+    @Override
+    public String toString() {
+        return "LoanAvailableEvent{"
+                + "available="
+                + available
+                + ", requestedAmount='"
+                + requestedAmount
+                + '\''
+                + ", annualInterestRate='"
+                + annualInterestRate
+                + '\''
+                + ", monthlyRepayment='"
+                + monthlyRepayment
+                + '\''
+                + ", totalRepayment='"
+                + totalRepayment
+                + '\''
+                + ", loanOffers="
+                + loanOffers
+                + '}';
     }
 
     public static class LoanAvailableEventBuilder {
@@ -58,10 +81,10 @@ public class LoanAvailableEvent {
             return this;
         }
 
-        //        public LoanAvailableEventBuilder setLoanOffers(List<LoanOffer> loanOffers) {
-        //            this.loanOffers = loanOffers;
-        //            return this;
-        //        }
+        public LoanAvailableEventBuilder setLoanOffers(List<LoanOffer> loanOffers) {
+            this.loanOffers = loanOffers;
+            return this;
+        }
 
         public LoanAvailableEvent createLoanAvailableEvent() {
             return new LoanAvailableEvent(
@@ -69,29 +92,8 @@ public class LoanAvailableEvent {
                     requestedAmount,
                     annualInterestRate,
                     monthlyRepayment,
-                    totalRepayment); // , loanOffers);
+                    totalRepayment,
+                    loanOffers);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "LoanAvailableEvent{"
-                + "available="
-                + available
-                + ", requestedAmount='"
-                + requestedAmount
-                + '\''
-                + ", annualInterestRate='"
-                + annualInterestRate
-                + '\''
-                + ", monthlyRepayment='"
-                + monthlyRepayment
-                + '\''
-                + ", totalRepayment='"
-                + totalRepayment
-                + '\''
-                +
-                //                ", loanOffers=" + loanOffers +
-                '}';
     }
 }
