@@ -1,25 +1,27 @@
 /* (C)2021 */
 package com.example.entity;
 
-import io.quarkus.mongodb.panache.MongoEntity;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import javax.json.bind.annotation.JsonbTransient;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@MongoEntity(collection = "LoanOffer")
+import javax.json.bind.annotation.JsonbTransient;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 public class LoanOffer extends ReactivePanacheMongoEntity {
 
-    @JsonbTransient private static final Logger logger = LoggerFactory.getLogger(LoanOffer.class);
+    @JsonbTransient
+    private static final Logger logger = LoggerFactory.getLogger(LoanOffer.class);
 
     @JsonbTransient
     private static final int pageSize =
@@ -29,7 +31,9 @@ public class LoanOffer extends ReactivePanacheMongoEntity {
     public String rate;
     public String lenderId;
 
-    /** Required for some serialisation */
+    /**
+     * Required for some serialisation
+     */
     public LoanOffer() {}
 
     public LoanOffer(String amount, String rate, String lenderId) {
@@ -42,7 +46,7 @@ public class LoanOffer extends ReactivePanacheMongoEntity {
      * The public method that allows the caller to receive a list of loan offers that meet
      *
      * @param amountRequested
-     * @return a Uni containing a list of loan offers, or
+     * @return a Uni containing a list of loan offers, or a null if there are not enough loans to make up the offer
      */
     public static Uni<List<LoanOffer>> retrieveLoanOffersThatSumToAtLeastValue(
             final BigDecimal amountRequested) {

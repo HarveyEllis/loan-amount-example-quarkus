@@ -62,6 +62,16 @@ I'd probalby put more builders on classes, and also make some of the accesses pr
 The reason for Strings - makes it easier for conversion to kafka and vice versa but want to use bigdecimal for anything
 to do with calculating money, or alternatively it might be viable to use the java currency types
 
+## Testing rationale
+
+Done a bit of testing on the numeric functions, but I haven't done tests for things like nulls, or divices by zeros. In
+a real corporate context this would be probably done by an in house library and you wouldn't be doing all te
+
+I've tried to show a few different things for testing: 
+- using quarkus test
+- using integration tests to run a whole lot of the app at once, and for spinning up kafka
+- using various standard 'enterprisey' libraries such as `assertj` and `equalsVerifier`.  
+
 ## Requires
 
 maven v3+ java 11+ (note that there is an error with spotless when using java

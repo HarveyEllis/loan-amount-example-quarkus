@@ -17,6 +17,8 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVER: kafka:9092
       MONGO_URL: "mongodb://db-user:some-password@database:27017/loans"
+    ports:
+      - '8081:8081'
 
   database:
     image:  'mongo:latest'
