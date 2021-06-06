@@ -71,10 +71,17 @@ public class KafkaService {
                 .createLoanAvailableEvent();
     }
 
+    /** Creates a loan available event using a list of loan offers. It starts at the first loan offer, sees how much
+     * that can fulfil the loan and continues until the loan principal is fully covered.
+     *
+     *
+     * @param loanOffers
+     * @return
+     */
     private LoanAvailableEvent createLoanAvailableEvent(List<LoanOffer> loanOffers) {
         logger.info("Creating loan event");
 
-        logger.info(String.valueOf(loanOffers.get(0).id));
+        BigDecimal totalPrincipal = new BigDecimal(0);
 
         return new LoanAvailableEvent.LoanAvailableEventBuilder()
                 .setAvailable(!loanOffers.isEmpty())

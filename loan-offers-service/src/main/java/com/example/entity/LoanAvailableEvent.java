@@ -3,6 +3,10 @@ package com.example.entity;
 
 import java.util.List;
 
+/**
+ * This is an event that is triggered when a loan availability calculation has been successfully carried out and a loan
+ * is either available or not available
+ */
 public class LoanAvailableEvent {
     public boolean available;
     public String requestedAmount;

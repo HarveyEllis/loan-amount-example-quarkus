@@ -27,9 +27,9 @@ class LoanAvailabilityServiceTest {
 
     private static Stream<Arguments> provideValuesForPeriodicInterestRates() {
         return Stream.of(
-                Arguments.of(new BigDecimal("0.10"), new BigDecimal("0.007974")),
-                Arguments.of(new BigDecimal("0.072"), new BigDecimal("0.005811")),
-                Arguments.of(new BigDecimal("0.07"), new BigDecimal("0.005654"))
+                Arguments.of(new BigDecimal("0.10"), 12, new BigDecimal("0.007974")),
+                Arguments.of(new BigDecimal("0.072"), 12, new BigDecimal("0.005811")),
+                Arguments.of(new BigDecimal("0.07"), 12, new BigDecimal("0.005654"))
         );
     }
 
@@ -39,7 +39,6 @@ class LoanAvailabilityServiceTest {
                 Arguments.of(new BigDecimal("30.78"), 36, new BigDecimal("1108.08"))
         );
     }
-
 
     @BeforeEach
     void setupService() {
@@ -58,9 +57,11 @@ class LoanAvailabilityServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideValuesForPeriodicInterestRates")
-    void givenAnAnnualInterestRateThenPeriodicInterestRateCalculatedCorrectly(BigDecimal annualRate, BigDecimal expectedMonthlyRate) {
+    void givenAnAnnualInterestRateThenPeriodicInterestRateCalculatedCorrectly(BigDecimal annualRate,
+                                                                              int paymentsPerAnnum,
+                                                                              BigDecimal expectedMonthlyRate) {
         assertThat(
-                sut.convertAnnualInterestRateToPeriodicInterestRate(annualRate)
+                sut.convertAnnualInterestRateToPeriodicInterestRate(annualRate, paymentsPerAnnum)
                         .round(mathContext))
                 .isEqualTo(expectedMonthlyRate);
     }
