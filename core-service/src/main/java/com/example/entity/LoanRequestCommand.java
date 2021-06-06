@@ -8,13 +8,15 @@ import java.util.UUID;
 public class LoanRequestCommand {
 
     public String amount;
+    public UUID borrowerId;
 
     public LoanRequestCommand() {
         super();
     }
 
-    public LoanRequestCommand(String amount, UUID lendeeId) {
+    public LoanRequestCommand(String amount, UUID borrowerId) {
         this.amount = amount;
+        this.borrowerId = borrowerId;
     }
 }
 

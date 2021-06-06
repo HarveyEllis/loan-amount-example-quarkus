@@ -1,3 +1,4 @@
+/* (C)2021 */
 package com.example.control;
 
 import io.quarkus.runtime.Quarkus;
