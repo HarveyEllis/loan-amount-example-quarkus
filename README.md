@@ -110,9 +110,21 @@ show collections
 db.LoanOffer.find()
 ```
 
+### Building a native loan client executable
+
+```shell
+cd loan-client
+../mvnw package -Dnative -Dquarkus.native.container-build=true
+```
+
+This will take a few minutes. It also requires being able to pull the required graalvm docker image from dockerhub. See
+the [quarkus docs](https://quarkus.io/guides/maven-tooling) for more information on providing a specific docker image to
+use when building.
+
 ### Kafka
 
-Exec into the kafka container: 
+Exec into the kafka container:
+
 ```shell
 docker exec -it setup_kafka_1 /bin/bash
 ```

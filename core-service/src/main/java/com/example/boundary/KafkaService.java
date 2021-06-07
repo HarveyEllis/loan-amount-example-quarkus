@@ -49,6 +49,11 @@ public class KafkaService {
         return loanRequestEmitter.send(toJson(event)).toCompletableFuture();
     }
 
+    public CompletableFuture<Void> sendLoanRequest2(final LoanRequestCommand event) {
+        logger.debug("Sending loan request command: {}", event);
+        return loanRequestEmitter.send(toJson(event)).toCompletableFuture();
+    }
+
     @Incoming("loans-available")
     @Outgoing("loans-available-updates")
     @Broadcast

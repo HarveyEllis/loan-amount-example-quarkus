@@ -1,12 +1,9 @@
 /* (C)2021 */
 package com.example.boundary;
 
-import com.example.entity.LoanAvailableEvent;
-import com.example.entity.LoanOffer;
-import com.example.entity.LoanOfferCommand;
-import com.example.entity.LoanRequestCommand;
+import com.example.entity.*;
 import io.smallrye.reactive.messaging.annotations.Broadcast;
-import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.*;
 import org.jboss.resteasy.annotations.SseElementType;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -16,7 +13,12 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.example.control.JsonUtil.toJson;
 
@@ -26,6 +28,8 @@ import static com.example.control.JsonUtil.toJson;
 public class Handler {
 
     Logger logger = LoggerFactory.getLogger(Handler.class);
+    private Map<String, LoanAvailableEvent> loansAvailable = Collections.synchronizedMap(new TreeMap<>());
+    private AtomicInteger requestNumber = new AtomicInteger();
 
     @Inject
     KafkaService kafkaService;
@@ -35,10 +39,16 @@ public class Handler {
     @Broadcast
     Publisher<LoanAvailableEvent> updater;
 
+    @Incoming("loans-available-updates")
+    public void saveLoanAvailableEvent(LoanAvailableEvent loanAvailableEvent) {
+        loansAvailable.put(String.valueOf(requestNumber.getAndIncrement()), loanAvailableEvent);
+    }
+
     @GET
-    @Path("/stream")
+    @Path("loans-available-stream")
     @Produces(MediaType.SERVER_SENT_EVENTS) // denotes that server side events (SSE) will be produced
-    @SseElementType(MediaType.APPLICATION_JSON) // denotes that the contained data, within this SSE, is just regular text/plain data
+    @SseElementType(MediaType.APPLICATION_JSON)
+    // denotes that the contained data, within this SSE, is just regular text/plain data
     public Publisher<LoanAvailableEvent> dashboardStream() {
         return updater;
     }
@@ -75,5 +85,15 @@ public class Handler {
                                 return Response.accepted().entity(loanRequestCommand).build();
                             }
                         });
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("loans-available")
+    public Response getAllLoansAvailable() {
+        return Response
+                .status(Response.Status.OK)
+                .entity(loansAvailable)
+                .build();
     }
 }

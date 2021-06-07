@@ -135,7 +135,6 @@
 </div>
 
 <script>
-    // document.getElementById("check").innerHTML ="I am empowered by the script tag to take over the HTML content";
     const evtSource = new EventSource("stream");
     evtSource.onmessage = function(event) {
         const newElement = document.createElement("li");

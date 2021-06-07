@@ -1,0 +1,2 @@
+#!/bin/bash
+java -jar target/loan-client-1.0.0-SNAPSHOT-runner.jar $@

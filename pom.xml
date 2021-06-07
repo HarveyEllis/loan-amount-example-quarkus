@@ -11,6 +11,7 @@
     <module>core-service</module>
     <module>loan-amount-domain</module>
     <module>loan-offers-service</module>
+    <module>loan-client</module>
   </modules>
   <properties>
     <assertj.version>3.19.0</assertj.version>
