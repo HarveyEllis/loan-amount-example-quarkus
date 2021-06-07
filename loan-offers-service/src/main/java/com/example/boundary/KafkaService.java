@@ -32,6 +32,8 @@ public class KafkaService {
 
     @Inject LoanAvailabilityService loanAvailabilityService;
 
+    @Inject LoanOfferRepository loanOfferRepository;
+
     @Inject
     @Channel("loans-available")
     Emitter<LoanAvailableEvent> loanAvailableEmitter;
@@ -44,7 +46,7 @@ public class KafkaService {
         LoanOffer loanOffer = jsonb.fromJson(message.getPayload().toString(), LoanOffer.class);
 
         // persist, acknowledge and return
-        return loanOffer.persist().subscribeAsCompletionStage().thenRun(message::ack);
+        return loanOfferRepository.persist(loanOffer).subscribeAsCompletionStage().thenRun(message::ack);
     }
 
     @Incoming("loan-requests-in")

@@ -1,6 +1,7 @@
 /* (C)2021 */
 package com.example.control;
 
+import com.example.boundary.LoanOfferRepository;
 import com.example.entity.IncompatibleLoanTermsException;
 import com.example.entity.Loan;
 import com.example.entity.LoanAvailableEvent;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,28 +23,18 @@ import java.util.stream.Collectors;
 public class LoanAvailabilityService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanAvailabilityService.class);
-    // These would probalby be somewhere else in actuality, stored either in the loan offer or made configurable
+    // These would probably be somewhere else in actuality, stored either in the loan offer or made configurable
     // somewhere.
     private static int numberOfPayments = 36;
     private static int paymentsPerAnnum = 12;
+    @Inject
+    LoanOfferRepository loanOfferRepository;
 
     public LoanAvailabilityService() {
     }
 
-    /**
-     * A function that returns a false LoanAvailableEvent
-     *
-     * @return false and empty loan available event
-     */
-    public LoanAvailableEvent createLoanNotAvailableEvent() {
-        logger.debug("Creating loan not available event");
-        return new LoanAvailableEvent.LoanAvailableEventBuilder()
-                .setAvailable(false)
-                .createLoanAvailableEvent();
-    }
-
     public static List<LoanAndOfferPair> calculateListOfLoansToFulfilAmount(BigDecimal amountRequested,
-                                                                    List<LoanOffer> offers) {
+                                                                            List<LoanOffer> offers) {
         BigDecimal currentTotal = new BigDecimal(0);
         logger.info(String.valueOf(offers));
         List<LoanAndOfferPair> loans = new ArrayList<>();
@@ -69,8 +61,20 @@ public class LoanAvailabilityService {
         return loans;
     }
 
+    /**
+     * A function that returns a false LoanAvailableEvent
+     *
+     * @return false and empty loan available event
+     */
+    public LoanAvailableEvent createLoanNotAvailableEvent() {
+        logger.debug("Creating loan not available event");
+        return new LoanAvailableEvent.LoanAvailableEventBuilder()
+                .setAvailable(false)
+                .createLoanAvailableEvent();
+    }
+
     public Uni<LoanAvailableEvent> calculateLoanAvailability(BigDecimal amountRequested) {
-        return LoanOffer.retrieveLoanOffersThatSumToAtLeastValue(amountRequested)
+        return loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amountRequested)
                 .onItem()
                 .ifNotNull()
                 .transform(offers -> {

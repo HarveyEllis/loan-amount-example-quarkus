@@ -104,6 +104,12 @@ db.LoanOffer.find()
 
 ### Kafka
 
+Exec into the kafka container: 
 ```shell
+docker exec -it setup_kafka_1 /bin/bash
+```
+
+```shell
+cd bin
 ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic loans-available --from-beginning
 ```

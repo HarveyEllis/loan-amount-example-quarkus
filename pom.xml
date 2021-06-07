@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.example</groupId>
   <artifactId>loan-amount-example</artifactId>
@@ -9,16 +8,14 @@
   <packaging>pom</packaging>
   <name>Loan amount example</name>
   <modules>
-    <module>loan-offers-service</module>
-    <!--    <module>members-service</module>-->
     <module>core-service</module>
+    <module>loan-amount-domain</module>
+    <module>loan-offers-service</module>
   </modules>
-
   <properties>
-    <spotless.version>2.11.1</spotless.version>
     <assertj.version>3.19.0</assertj.version>
+    <spotless.version>2.11.1</spotless.version>
   </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -29,25 +26,21 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
   <build>
-    <!--    <pluginManagement>-->
     <plugins>
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
         <version>${spotless.version}</version>
         <configuration>
-          <!-- limit format enforcement to just the files changed by this feature branch -->
-          <!--          <ratchetFrom>origin/main</ratchetFrom>-->
           <formats>
             <format>
               <includes>
                 <include>*.md</include>
                 <include>.gitignore</include>
               </includes>
-              <trimTrailingWhitespace/>
-              <endWithNewline/>
+              <trimTrailingWhitespace />
+              <endWithNewline />
               <indent>
                 <tabs>true</tabs>
                 <spacesPerTab>4</spacesPerTab>
@@ -55,22 +48,16 @@
             </format>
           </formats>
           <java>
-            <!-- apply google-java-format -->
             <googleJavaFormat>
               <version>1.8</version>
               <style>AOSP</style>
             </googleJavaFormat>
-
-            <!-- make sure every file has the following copyright header.
-              optionally, Spotless can set copyright years by digging
-              through git history (see "license" section below) -->
             <licenseHeader>
-              <content>/* (C)$YEAR */</content>  <!-- or <file>${basedir}/license-header</file> -->
+              <content>/* (C)$YEAR */</content>
             </licenseHeader>
           </java>
         </configuration>
       </plugin>
     </plugins>
-    <!--    </pluginManagement>-->
   </build>
 </project>
