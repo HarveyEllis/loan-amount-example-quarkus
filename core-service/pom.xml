@@ -35,6 +35,12 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>loan-amount-domain</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy</artifactId>
     </dependency>

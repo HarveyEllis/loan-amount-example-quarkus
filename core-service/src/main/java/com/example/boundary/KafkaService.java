@@ -3,7 +3,9 @@ package com.example.boundary;
 
 import static com.example.control.JsonUtil.toJson;
 
+import com.example.entity.LoanAvailableEvent;
 import com.example.entity.LoanOfferCommand;
+import com.example.entity.LoanRequest;
 import com.example.entity.LoanRequestCommand;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -12,6 +14,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
 
 import io.smallrye.reactive.messaging.annotations.Broadcast;
 import org.eclipse.microprofile.reactive.messaging.*;
@@ -22,7 +26,10 @@ import org.slf4j.LoggerFactory;
 @RegisterForReflection
 public class KafkaService {
 
-    final Logger logger = LoggerFactory.getLogger(KafkaService.class);
+    private static final Logger logger = LoggerFactory.getLogger(KafkaService.class);
+
+    @Inject
+    Jsonb jsonb;
 
     @Inject
     @Channel("loan-offers-in")
@@ -42,17 +49,13 @@ public class KafkaService {
         return loanRequestEmitter.send(toJson(event)).toCompletableFuture();
     }
 
-//    @Incoming("loan-requests-in")
-//    public CompletionStage<Void> onLoanRequest(final Message message) {
-//
-//    }
-//
-//    @Incoming("prices")
-//    @Outgoing("my-data-stream")
-//    @Broadcast
-//    @Acknowledgment(Acknowledgment.Strategy.PRE_PROCESSING)
-//    public double process(final Message message) {
-//        LoanRequest loanRequest =
-//                jsonb.fromJson(message.getPayload().toString(), LoanRequest.class);
-//    }
+    @Incoming("loans-available")
+    @Outgoing("loans-available-updates")
+    @Broadcast
+    @Acknowledgment(Acknowledgment.Strategy.PRE_PROCESSING)
+    public LoanAvailableEvent onLoanRequest(final Message message) {
+        LoanAvailableEvent loanAvailableEvent = jsonb.fromJson(message.getPayload().toString(), LoanAvailableEvent.class);
+        logger.info(loanAvailableEvent.toString());
+        return loanAvailableEvent;
+    }
 }

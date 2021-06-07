@@ -85,6 +85,14 @@ docker-compose docker
 
 ## Inspecting operation
 
+```shell
+docker-compose -f setup/docker-compose-dev.yaml up --remove-orphans --force-recreate --build
+```
+Clean up afterwards:
+```shell
+docker-compose -f setup/docker-compose-dev.yaml down --remove-orphans
+```
+
 ### database
 
 When the database is running, login with:

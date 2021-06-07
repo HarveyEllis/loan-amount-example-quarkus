@@ -15,6 +15,8 @@ public class LoanAvailableEvent {
     public String totalRepayment;
     public List<LoanOffer> loanOffers;
 
+    public LoanAvailableEvent(){}
+
     public LoanAvailableEvent(
             boolean available,
             String requestedAmount,

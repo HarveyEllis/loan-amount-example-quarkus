@@ -109,33 +109,15 @@
 <body>
 
 <div class="banner lead">
-    Your new Cloud-Native application is ready!
+    Loan amount example
 </div>
 
 <div class="container">
     <div class="left-column">
-        <p class="lead"> Hello, you have created a new Quarkus cloud application.</p>
+        <p class="lead"> Below are the messages that have been received for loan availability events</p>
 
-        <h2>What is this page?</h2>
-
-        <p>This page is served by Quarkus. The source is in
-            <code>src/main/resources/META-INF/resources/index.html</code>.</p>
-
-        <h2>What are your next steps?</h2>
-
-        <p>If not already done, run the application in <em>dev mode</em> using: <code>./mvnw compile quarkus:dev</code>.
-        </p>
-        <ul>
-            <li>Your static assets are located in <code>src/main/resources/META-INF/resources</code>.</li>
-            <li>Configure your application in <code>src/main/resources/application.properties</code>.</li>
-            <li>Quarkus now ships with a <a href="/q/dev/">Dev UI</a> (available in dev mode only)</li>
-            <li>Play with the getting started example code located in <code>src/main/java</code>:</li>
-        </ul>
-                <div class="example-code">
-            <h3>RESTEasy JAX-RS example</h3>
-            <p>REST is easy peasy with this Hello World RESTEasy resource.</p>
-            <p><code>@Path: <a href="/hello-resteasy" class="path-link" target="_blank">/hello-resteasy</a></code></p>
-            <p><a href="https://quarkus.io/guides/getting-started#the-jax-rs-resources" class="guide-link" target="_blank">Related guide section...</a></p>
+        <h2>Messages Received</h2>
+        <div id="list">
         </div>
 
     </div>
@@ -149,28 +131,19 @@
                 <li>Quarkus Version: <code>1.13.6.Final</code></li>
             </ul>
         </div>
-        <div class="right-section">
-            <h3>Do you like Quarkus?</h3>
-            <ul>
-                <li>Go give it a star on <a href="https://github.com/quarkusio/quarkus">GitHub</a>.</li>
-            </ul>
-        </div>
-        <div class="right-section">
-            <h3>Selected extensions guides</h3>
-            <ul>
-                <li title="REST endpoint framework implementing JAX-RS and more"><a href="https://quarkus.io/guides/rest-json" target="_blank">RESTEasy JAX-RS guide</a></li>
-            </ul>
-        </div>
-        <div class="right-section">
-            <h3>More reading</h3>
-            <ul>
-                <li><a href="https://quarkus.io/guides/maven-tooling.html" target="_blank">Setup your IDE</a></li>
-                <li><a href="https://quarkus.io/guides/getting-started.html" target="_blank">Getting started</a></li>
-                <li><a href="https://quarkus.io/guides/" target="_blank">All guides</a></li>
-                <li><a href="https://quarkus.io" target="_blank">Quarkus Web Site</a></li>
-            </ul>
-        </div>
     </div>
 </div>
+
+<script>
+    // document.getElementById("check").innerHTML ="I am empowered by the script tag to take over the HTML content";
+    const evtSource = new EventSource("stream");
+    evtSource.onmessage = function(event) {
+        const newElement = document.createElement("li");
+        const eventList = document.getElementById("list");
+
+        newElement.textContent = "message: " + event.data;
+        eventList.appendChild(newElement);
+    }
+</script>
 </body>
 </html>
