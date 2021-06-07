@@ -51,7 +51,7 @@ class LoanAvailabilityServiceTest {
                                                                           BigDecimal periodicInterestRate,
                                                                           BigDecimal expectedMonthlyPayment) {
 
-        BigDecimal result = sut.calculateAmountOwedPerMonth(periodicInterestRate, loanAmount, 36);
+        BigDecimal result = LoanAvailabilityService.calculateAmountOwedPerMonth(periodicInterestRate, loanAmount, 36);
         assertThat(result.setScale(2, RoundingMode.HALF_UP)).isEqualTo(expectedMonthlyPayment);
     }
 
@@ -61,7 +61,7 @@ class LoanAvailabilityServiceTest {
                                                                               int paymentsPerAnnum,
                                                                               BigDecimal expectedMonthlyRate) {
         assertThat(
-                sut.convertAnnualInterestRateToPeriodicInterestRate(annualRate, paymentsPerAnnum)
+                LoanAvailabilityService.convertAnnualInterestRateToPeriodicInterestRate(annualRate, paymentsPerAnnum)
                         .round(mathContext))
                 .isEqualTo(expectedMonthlyRate);
     }
@@ -72,7 +72,7 @@ class LoanAvailabilityServiceTest {
                                                                      int numberOfPaymentPeriods,
                                                                      BigDecimal expectedTotalRepayment) {
         assertThat(
-                sut.calculateTotalRepayment(monthlyRepayment, numberOfPaymentPeriods)
+                LoanAvailabilityService.calculateTotalRepayment(monthlyRepayment, numberOfPaymentPeriods)
                         .setScale(2, RoundingMode.HALF_UP))
                 .isEqualTo(expectedTotalRepayment);
     }

@@ -16,12 +16,12 @@ import java.math.RoundingMode;
 public class LoanAvailabilityService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanAvailabilityService.class);
-    private final BigDecimal one = new BigDecimal(1);
+    private static final BigDecimal one = new BigDecimal(1);
 
     public LoanAvailabilityService() {
     }
 
-    public BigDecimal calculateRatePerAnnum(BigDecimal principal, BigDecimal totalRepayment,
+    public static BigDecimal calculateRatePerAnnum(BigDecimal principal, BigDecimal totalRepayment,
                                             int totalNumberOfPayments,
                                             int numberOfPaymentsPerAnnum) {
 
@@ -37,11 +37,11 @@ public class LoanAvailabilityService {
         return DefaultBigDecimalMath.root(principalOverTotalRepayment, yearsOfPayments).subtract(one);
     }
 
-    public BigDecimal calculateTotalRepayment(BigDecimal monthlyRepayment, int numberOfPayments) {
+    public static BigDecimal calculateTotalRepayment(BigDecimal monthlyRepayment, int numberOfPayments) {
         return monthlyRepayment.multiply(new BigDecimal(numberOfPayments));
     }
 
-    public BigDecimal convertAnnualInterestRateToPeriodicInterestRate(BigDecimal annualInterestRate,
+    public static BigDecimal convertAnnualInterestRateToPeriodicInterestRate(BigDecimal annualInterestRate,
                                                                       int paymentsPerAnnum) {
         BigDecimal numberOfAnnualPayments = new BigDecimal(paymentsPerAnnum);
 
@@ -50,7 +50,7 @@ public class LoanAvailabilityService {
         return calcRate.subtract(one);
     }
 
-    public BigDecimal calculateAmountOwedPerMonth(BigDecimal periodicInterestRate, BigDecimal amount,
+    public static BigDecimal calculateAmountOwedPerMonth(BigDecimal periodicInterestRate, BigDecimal amount,
                                                   int numberOfPaymentPeriods) {
 
         BigDecimal onePlusPeriodicInterestRateToThePowerOfNumberOfPayments =
