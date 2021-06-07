@@ -61,6 +61,29 @@ class LoanTest {
         );
     }
 
+    private static Stream<Arguments> provideValuesForRatesRepayments() {
+        return Stream.of(
+                Arguments.of(new BigDecimal(1000), new BigDecimal("0.005654"), new BigDecimal("30.78")),
+                Arguments.of(new BigDecimal(1700), new BigDecimal("0.005811"), new BigDecimal("52.47")),
+                Arguments.of(new BigDecimal(2500), new BigDecimal("0.007974"), new BigDecimal("80.16"))
+        );
+    }
+
+    private static Stream<Arguments> provideValuesForPeriodicInterestRates() {
+        return Stream.of(
+                Arguments.of(new BigDecimal("0.10"), 12, new BigDecimal("0.007974")),
+                Arguments.of(new BigDecimal("0.072"), 12, new BigDecimal("0.005811")),
+                Arguments.of(new BigDecimal("0.07"), 12, new BigDecimal("0.005654"))
+        );
+    }
+
+    private static Stream<Arguments> provideValuesForTotalRepayments() {
+        return Stream.of(
+                Arguments.of(new BigDecimal("52.46"), 36, new BigDecimal("1888.56")),
+                Arguments.of(new BigDecimal("30.78"), 36, new BigDecimal("1108.08"))
+        );
+    }
+
     @ParameterizedTest
     @MethodSource("provideValuesForLoanBlendedCalculations")
     void givenTwoLoansBlendedRateIsCalculatedCorrectly(Loan firstLoan,
@@ -103,5 +126,36 @@ class LoanTest {
         assertThat(actual.getMonthlyRepayment().setScale(2, RoundingMode.HALF_UP)).isEqualTo(monthlyRepayment);
     }
 
+    @ParameterizedTest
+    @MethodSource("provideValuesForRatesRepayments")
+    void givenASingleLoanOfferThenServiceReturnsCorrectRatesAndRepayments(BigDecimal loanAmount,
+                                                                          BigDecimal periodicInterestRate,
+                                                                          BigDecimal expectedMonthlyPayment) {
+
+        BigDecimal result = Loan.calculateAmountOwedPerMonth(periodicInterestRate, loanAmount, 36);
+        assertThat(result.setScale(2, RoundingMode.HALF_UP)).isEqualTo(expectedMonthlyPayment);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideValuesForPeriodicInterestRates")
+    void givenAnAnnualInterestRateThenPeriodicInterestRateCalculatedCorrectly(BigDecimal annualRate,
+                                                                              int paymentsPerAnnum,
+                                                                              BigDecimal expectedMonthlyRate) {
+        assertThat(
+                Loan.convertAnnualInterestRateToPeriodicInterestRate(annualRate, paymentsPerAnnum)
+                        .round(fourSf))
+                .isEqualTo(expectedMonthlyRate);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideValuesForTotalRepayments")
+    void givenAMonthlyRepaymentThenTotalRepaymentCalculatedCorrectly(BigDecimal monthlyRepayment,
+                                                                     int numberOfPaymentPeriods,
+                                                                     BigDecimal expectedTotalRepayment) {
+        assertThat(
+                Loan.calculateTotalRepayment(monthlyRepayment, numberOfPaymentPeriods)
+                        .setScale(2, RoundingMode.HALF_UP))
+                .isEqualTo(expectedTotalRepayment);
+    }
 
 }

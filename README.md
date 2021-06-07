@@ -76,8 +76,34 @@ I've tried to show a few different things for testing:
 
 maven v3+ java 11+ (note that there is an error with spotless when using java
 16, [see here](https://github.com/diffplug/spotless/issues/834))
+docker-compose docker
+
+## Caveats and deviations
+
+
+## Additional future directions
+
+## Inspecting operation
 
 ### database
 
-use loans db.auth("db-user", "some-password")
-show collections db.LoanOffer.find()
+When the database is running, login with:
+
+```shell
+mongosh -u admin -p some-pw
+```
+
+Then use the following commands to inspect the objects that are stored in there.
+
+```shell
+use loans 
+db.auth("db-user", "some-password")
+show collections 
+db.LoanOffer.find()
+```
+
+### Kafka
+
+```shell
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic loans-available --from-beginning
+```

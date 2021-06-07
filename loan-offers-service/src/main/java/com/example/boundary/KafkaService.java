@@ -19,7 +19,6 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -56,41 +55,11 @@ public class KafkaService {
 
         logger.debug("loan request: {}", loanRequest);
 
-        return LoanOffer.retrieveLoanOffersThatSumToAtLeastValue(amountRequested)
-                .onItem().ifNotNull().transform(this::createLoanAvailableEvent)
-                .onItem().ifNull().continueWith(this::createLoanNotAvailableEvent)
+        return loanAvailabilityService.calculateLoanAvailability(amountRequested)
                 .invoke(this::sendLoanAvailable)
                 .subscribeAsCompletionStage()
                 .thenAccept(e -> logger.info(String.valueOf(e)))
                 .thenRun(message::ack);
-    }
-
-    private LoanAvailableEvent createLoanNotAvailableEvent() {
-        return new LoanAvailableEvent.LoanAvailableEventBuilder()
-                .setAvailable(false)
-                .createLoanAvailableEvent();
-    }
-
-    /** Creates a loan available event using a list of loan offers. It starts at the first loan offer, sees how much
-     * that can fulfil the loan and continues until the loan principal is fully covered.
-     *
-     *
-     * @param loanOffers
-     * @return
-     */
-    private LoanAvailableEvent createLoanAvailableEvent(List<LoanOffer> loanOffers) {
-        logger.info("Creating loan event");
-
-        BigDecimal totalPrincipal = new BigDecimal(0);
-
-        return new LoanAvailableEvent.LoanAvailableEventBuilder()
-                .setAvailable(!loanOffers.isEmpty())
-                .setLoanOffers(loanOffers)
-                .setTotalRepayment("")
-                .setAnnualInterestRate("")
-                .setRequestedAmount("")
-                .setMonthlyRepayment("")
-                .createLoanAvailableEvent();
     }
 
     public CompletableFuture<Void> sendLoanAvailable(LoanAvailableEvent event) {

@@ -1,67 +1,121 @@
 /* (C)2021 */
 package com.example.control;
 
-import ch.obermuhlner.math.big.DefaultBigDecimalMath;
+import com.example.entity.IncompatibleLoanTermsException;
 import com.example.entity.Loan;
+import com.example.entity.LoanAvailableEvent;
+import com.example.entity.LoanOffer;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.smallrye.mutiny.Uni;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @RegisterForReflection
 public class LoanAvailabilityService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanAvailabilityService.class);
-    private static final BigDecimal one = new BigDecimal(1);
+    // These would probalby be somewhere else in actuality, stored either in the loan offer or made configurable
+    // somewhere.
+    private static int numberOfPayments = 36;
+    private static int paymentsPerAnnum = 12;
 
     public LoanAvailabilityService() {
     }
 
-    public static BigDecimal calculateRatePerAnnum(BigDecimal principal, BigDecimal totalRepayment,
-                                            int totalNumberOfPayments,
-                                            int numberOfPaymentsPerAnnum) {
-
-        // p * (1+r) ^ 3 = t
-        // ((t/p) ^ (1/3)) - 1 = r
-        BigDecimal yearsOfPayments = new BigDecimal(totalNumberOfPayments).divide(new BigDecimal(numberOfPaymentsPerAnnum),
-                RoundingMode.UNNECESSARY);
-        System.out.println(yearsOfPayments);
-
-        BigDecimal principalOverTotalRepayment = totalRepayment.divide(principal, RoundingMode.HALF_UP);
-        System.out.println(principalOverTotalRepayment);
-
-        return DefaultBigDecimalMath.root(principalOverTotalRepayment, yearsOfPayments).subtract(one);
+    /**
+     * A function that returns a false LoanAvailableEvent
+     *
+     * @return false and empty loan available event
+     */
+    public LoanAvailableEvent createLoanNotAvailableEvent() {
+        logger.debug("Creating loan not available event");
+        return new LoanAvailableEvent.LoanAvailableEventBuilder()
+                .setAvailable(false)
+                .createLoanAvailableEvent();
     }
 
-    public static BigDecimal calculateTotalRepayment(BigDecimal monthlyRepayment, int numberOfPayments) {
-        return monthlyRepayment.multiply(new BigDecimal(numberOfPayments));
+    public static List<LoanAndOfferPair> calculateListOfLoansToFulfilAmount(BigDecimal amountRequested,
+                                                                    List<LoanOffer> offers) {
+        BigDecimal currentTotal = new BigDecimal(0);
+        logger.info(String.valueOf(offers));
+        List<LoanAndOfferPair> loans = new ArrayList<>();
+        int i = 0;
+        while (currentTotal.compareTo(amountRequested) < 0) {
+            LoanOffer loanOffer = offers.get(i);
+
+            BigDecimal loanOfferPrincipal = new BigDecimal(loanOffer.amount);
+            if (currentTotal.add(loanOfferPrincipal).compareTo(amountRequested) > -1) {
+                loanOfferPrincipal = amountRequested.subtract(currentTotal);
+            }
+
+            LoanAndOfferPair pair = new LoanAndOfferPair(new Loan.LoanBuilder()
+                    .setPrincipal(loanOfferPrincipal)
+                    .setYearlyRate(new BigDecimal(loanOffer.rate))
+                    .setPaymentsPerAnnum(paymentsPerAnnum)
+                    .setNumberOfPayments(numberOfPayments)
+                    .createLoan(), loanOffer);
+            loans.add(pair);
+
+            currentTotal = currentTotal.add(loanOfferPrincipal);
+            ++i;
+        }
+        return loans;
     }
 
-    public static BigDecimal convertAnnualInterestRateToPeriodicInterestRate(BigDecimal annualInterestRate,
-                                                                      int paymentsPerAnnum) {
-        BigDecimal numberOfAnnualPayments = new BigDecimal(paymentsPerAnnum);
+    public Uni<LoanAvailableEvent> calculateLoanAvailability(BigDecimal amountRequested) {
+        return LoanOffer.retrieveLoanOffersThatSumToAtLeastValue(amountRequested)
+                .onItem()
+                .ifNotNull()
+                .transform(offers -> {
+                    logger.info("offers reaching transform {}", offers);
+                    List<LoanAndOfferPair> loansToFulfilAmount = calculateListOfLoansToFulfilAmount(amountRequested, offers);
+                    try {
+                        Loan terms = Loan.reduce(loansToFulfilAmount.stream().map(elem -> elem.loan).collect(Collectors.toList()));
+                        List<LoanOffer> loanOffers =
+                                loansToFulfilAmount.stream().map(elem -> elem.loanOffer).collect(Collectors.toList());
+                        return this.createLoanAvailableEvent(loanOffers, terms);
+                    } catch (IncompatibleLoanTermsException e) {
+                        logger.error("Could not reduce loans to a single amount", e);
+                        return null;
+                    }
+                })
+                .onItem().ifNull().continueWith(this::createLoanNotAvailableEvent);
 
-        BigDecimal addOne = annualInterestRate.add(one);
-        BigDecimal calcRate = DefaultBigDecimalMath.root(addOne, numberOfAnnualPayments);
-        return calcRate.subtract(one);
     }
 
-    public static BigDecimal calculateAmountOwedPerMonth(BigDecimal periodicInterestRate, BigDecimal amount,
-                                                  int numberOfPaymentPeriods) {
-
-        BigDecimal onePlusPeriodicInterestRateToThePowerOfNumberOfPayments =
-                one.add(periodicInterestRate).pow(numberOfPaymentPeriods);
-
-        BigDecimal topOfAnnuityFormula =
-                onePlusPeriodicInterestRateToThePowerOfNumberOfPayments.multiply(periodicInterestRate);
-
-        BigDecimal bottomOfAnnuityFormula = onePlusPeriodicInterestRateToThePowerOfNumberOfPayments.subtract(one);
-
-        return DefaultBigDecimalMath.divide(topOfAnnuityFormula, bottomOfAnnuityFormula).multiply(amount);
+    /**
+     * Creates a loan available event using a list of loan offers. It starts at the first loan offer, sees how much
+     * that can fulfil the loan and continues until the loan principal is fully covered.
+     *
+     * @param loanOffers A list of loanOffers
+     * @return
+     */
+    private LoanAvailableEvent createLoanAvailableEvent(List<LoanOffer> loanOffers, Loan loanTerms) {
+        logger.debug("Creating loan available event");
+        return new LoanAvailableEvent.LoanAvailableEventBuilder()
+                .setAvailable(!loanOffers.isEmpty())
+                .setLoanOffers(loanOffers)
+                .setTotalRepayment(loanTerms.getTotalRepayment().toString())
+                .setAnnualInterestRate(loanTerms.getYearlyRate().toString())
+                .setRequestedAmount(loanTerms.getPrincipal().toString())
+                .setMonthlyRepayment(loanTerms.getMonthlyRepayment().toString())
+                .createLoanAvailableEvent();
     }
 
+    public static class LoanAndOfferPair {
+        public Loan loan;
+        public LoanOffer loanOffer;
+
+        public LoanAndOfferPair(com.example.entity.Loan loan, LoanOffer loanOffer) {
+            this.loan = loan;
+            this.loanOffer = loanOffer;
+        }
+    }
 }

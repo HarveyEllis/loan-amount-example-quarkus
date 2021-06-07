@@ -6,9 +6,6 @@ import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +21,8 @@ public class LoanOffer extends ReactivePanacheMongoEntity {
     private static final Logger logger = LoggerFactory.getLogger(LoanOffer.class);
 
     @JsonbTransient
-    private static final int pageSize =
-            ConfigProvider.getConfig().getValue("mongo.pagesize", java.lang.Integer.class);
+    private static final int pageSize = 2;
+//            ConfigProvider.getConfig().getValue("mongo.pagesize", java.lang.Integer.class);
 
     public String amount;
     public String rate;
@@ -34,7 +31,8 @@ public class LoanOffer extends ReactivePanacheMongoEntity {
     /**
      * Required for some serialisation
      */
-    public LoanOffer() {}
+    public LoanOffer() {
+    }
 
     public LoanOffer(String amount, String rate, String lenderId) {
         this.amount = amount;
@@ -43,15 +41,27 @@ public class LoanOffer extends ReactivePanacheMongoEntity {
     }
 
     /**
-     * The public method that allows the caller to receive a list of loan offers that meet
+     * The public method that allows the caller to receive a list of loan offers that meet the amount requested
+     * <p>
+     * NB: Must be careful to only subscribe to this once in a single request context - else the
+     * atomic references used withihn will become overused and not work correctly
      *
      * @param amountRequested
-     * @return a Uni containing a list of loan offers, or a null if there are not enough loans to make up the offer
+     * @return a uni containing a list of loans that are sufficient to fulfil the loan, or a nullItem if there
+     * are not enough offers to fulfil that amount
      */
     public static Uni<List<LoanOffer>> retrieveLoanOffersThatSumToAtLeastValue(
             final BigDecimal amountRequested) {
-        Multi<LoanOffer> loanOffersFromDb = getLoanPagesUntilLoanOfferValue(amountRequested);
-        return listLoansRequiredToFulfilRequest(loanOffersFromDb, amountRequested);
+        return getLoanPagesUntilLoanOfferValue(amountRequested).collect()
+                .asList()
+                .onItem()
+                .transformToUni(loanOffers -> {
+                    if (sumLoanOffers(loanOffers).compareTo(amountRequested) > -1) {
+                        return Uni.createFrom().item(() -> loanOffers);
+                    } else {
+                        return Uni.createFrom().nullItem();
+                    }
+                });
     }
 
     /**
@@ -83,62 +93,12 @@ public class LoanOffer extends ReactivePanacheMongoEntity {
                 .whilst(
                         offerPage -> {
                             if (offerPage.isEmpty()) return false;
-
-                            logger.info(offerPage.toString());
-                            BigDecimal print =
-                                    currentTotal.getAndAccumulate(
-                                            sumLoanOffers(offerPage), BigDecimal::add);
-                            logger.info("andAccumulate: {}", print.toString());
-                            logger.info("comparison: {}", print.compareTo(amountRequested) < 1);
-
-                            return print.compareTo(amountRequested) < 1;
+                            return currentTotal.getAndAccumulate(
+                                    sumLoanOffers(offerPage), BigDecimal::add)
+                                    .compareTo(amountRequested) < 1;
                         })
                 .onItem()
                 .disjoint();
-    }
-
-    /**
-     * This function looks at a list of loan offers and returns the first n that are enough to
-     * fulfil the amount requested, or returns a nullItem when fulfilment is not possible.
-     *
-     * <p>NB: Must be careful to only subscribe to this once in a single request context - else the
-     * atomic reference will become overused and not work correctly
-     *
-     * @param loanOffers a list of loan offers that we want to check whether their sum is
-     * @param amountRequested the amount that needs to be fulfilled
-     * @return a list of loans that are sufficient to fulfil the loan, or a nullItem if there are
-     *     not enough offers to fulfil that amount
-     */
-    private static Uni<List<LoanOffer>> listLoansRequiredToFulfilRequest(
-            Multi<LoanOffer> loanOffers, final BigDecimal amountRequested) {
-        AtomicReference<BigDecimal> currentTotal = new AtomicReference<>(new BigDecimal(0));
-        return loanOffers
-                .select()
-                .first(
-                        offer ->
-                                currentTotal
-                                                .accumulateAndGet(
-                                                        new BigDecimal(offer.amount),
-                                                        BigDecimal::add)
-                                                .compareTo(amountRequested)
-                                        < 0)
-                .collect()
-                .asList()
-                .onItem()
-                .transformToUni(
-                        offersList -> {
-                            if (currentTotal.get().compareTo(amountRequested) < 0) {
-                                logger.info(
-                                        "Current total  {}, amount requested: {}",
-                                        currentTotal.get().toString(),
-                                        amountRequested.toString());
-                                return Uni.createFrom().nullItem();
-                            } else {
-                                logger.info(
-                                        "Current total return: {}", currentTotal.get().toString());
-                                return Uni.createFrom().item(() -> offersList);
-                            }
-                        });
     }
 
     /**
