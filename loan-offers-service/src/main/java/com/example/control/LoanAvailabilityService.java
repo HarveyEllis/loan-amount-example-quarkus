@@ -84,7 +84,7 @@ public class LoanAvailabilityService {
                         Loan terms = Loan.reduce(loansToFulfilAmount.stream().map(elem -> elem.loan).collect(Collectors.toList()));
                         List<LoanOffer> loanOffers =
                                 loansToFulfilAmount.stream().map(elem -> elem.loanOffer).collect(Collectors.toList());
-                        return this.createLoanAvailableEvent(loanOffers, terms);
+                        return this.createLoanAvailableEvent(loanOffers, terms, requesterId);
                     } catch (IncompatibleLoanTermsException e) {
                         logger.error("Could not reduce loans to a single amount", e);
                         return null;
@@ -101,7 +101,7 @@ public class LoanAvailabilityService {
      * @param loanOffers A list of loanOffers
      * @return
      */
-    private LoanAvailableEvent createLoanAvailableEvent(List<LoanOffer> loanOffers, Loan loanTerms) {
+    private LoanAvailableEvent createLoanAvailableEvent(List<LoanOffer> loanOffers, Loan loanTerms, String requesterId) {
         logger.debug("Creating loan available event");
         return new LoanAvailableEvent.LoanAvailableEventBuilder()
                 .setAvailable(!loanOffers.isEmpty())
@@ -109,6 +109,7 @@ public class LoanAvailabilityService {
                 .setTotalRepayment(loanTerms.getTotalRepayment().toString())
                 .setAnnualInterestRate(loanTerms.getYearlyRate().toString())
                 .setRequestedAmount(loanTerms.getPrincipal().toString())
+                .setRequesterId(requesterId)
                 .setMonthlyRepayment(loanTerms.getMonthlyRepayment().toString())
                 .createLoanAvailableEvent();
     }

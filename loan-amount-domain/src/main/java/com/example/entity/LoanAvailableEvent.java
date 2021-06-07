@@ -13,6 +13,7 @@ public class LoanAvailableEvent {
     public String annualInterestRate;
     public String monthlyRepayment;
     public String totalRepayment;
+    public String requesterId;
     public List<LoanOffer> loanOffers;
 
     public LoanAvailableEvent(){}
@@ -23,12 +24,14 @@ public class LoanAvailableEvent {
             String annualInterestRate,
             String monthlyRepayment,
             String totalRepayment,
+            String requesterId,
             List<LoanOffer> loanOffers) {
         this.available = available;
         this.requestedAmount = requestedAmount;
         this.annualInterestRate = annualInterestRate;
         this.monthlyRepayment = monthlyRepayment;
         this.totalRepayment = totalRepayment;
+        this.requesterId = requesterId;
         this.loanOffers = loanOffers;
     }
 
@@ -60,6 +63,7 @@ public class LoanAvailableEvent {
         private String annualInterestRate;
         private String monthlyRepayment;
         private String totalRepayment;
+        private String requesterId;
         private List<LoanOffer> loanOffers;
 
         public LoanAvailableEventBuilder setAvailable(boolean available) {
@@ -87,6 +91,11 @@ public class LoanAvailableEvent {
             return this;
         }
 
+        public LoanAvailableEventBuilder setRequesterId(String requesterId) {
+            this.requesterId = requesterId;
+            return this;
+        }
+
         public LoanAvailableEventBuilder setLoanOffers(List<LoanOffer> loanOffers) {
             this.loanOffers = loanOffers;
             return this;
@@ -99,6 +108,7 @@ public class LoanAvailableEvent {
                     annualInterestRate,
                     monthlyRepayment,
                     totalRepayment,
+                    requesterId,
                     loanOffers);
         }
     }
