@@ -5,8 +5,13 @@ import com.example.entity.LoanOfferRequest;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import io.quarkus.picocli.runtime.annotations.TopCommand;
-import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import javax.inject.Inject;
@@ -68,6 +73,7 @@ class SendLoanOffers implements Runnable {
 @CommandLine.Command(name = "send-request", description = "Create a request for a loan")
 class SendLoanRequest implements Runnable {
 
+    private static final Logger logger = LoggerFactory.getLogger(SendLoanRequest.class);
     @Inject
     @RestClient
     LoanService loanService;
@@ -75,8 +81,46 @@ class SendLoanRequest implements Runnable {
     @Override
     public void run() {
         System.out.println("Hello World!");
-        Multi<InboundSseEvent> publisher = Multi.createFrom().publisher(loanService.getEvents());
-        publisher.onItem().invoke((Consumer<InboundSseEvent>) System.out::println).subscribe();
+        loanService.getEvents().subscribe(new Subscriber<InboundSseEvent>(){
+            int MAX_EVENTS = 3;
+            int counter = 0;
+            Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription s) {
+                subscription = s;
+                s.request(MAX_EVENTS);
+            }
+
+            @Override
+            public void onNext(InboundSseEvent event) {
+
+                logger.info("Received Event");
+                System.out.println("  Name: " + event.getName());
+                System.out.println("  ID: " + event.getId());
+                System.out.println("  Comment: " + event.getComment());
+                System.out.println("  Data: " + event.readData());
+                if (++counter >= MAX_EVENTS) {
+                    subscription.cancel();
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.out.println("Error occurred while reading SSEs" + t);
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("All done");
+            }
+        });
+        Uni<InboundSseEvent> publisher = Uni.createFrom().publisher(loanService.getEvents());
+        publisher.onItem().invoke(e -> logger.info(String.valueOf(e))).subscribe().with(System.out::println);
+//                Uni<InboundSseEvent> publisher = Uni.createFrom().publisher(loanService.getEvents());
+
+//        String s = publisher.await().atMost(Duration.of(10, ChronoUnit.SECONDS));
+//        System.out.println(s);
     }
 }
 

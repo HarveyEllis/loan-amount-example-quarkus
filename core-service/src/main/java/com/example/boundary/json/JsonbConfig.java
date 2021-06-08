@@ -1,4 +1,4 @@
-package com.example.boundary;
+package com.example.boundary.json;
 
 import io.quarkus.jsonb.JsonbConfigCustomizer;
 
@@ -14,5 +14,6 @@ public class JsonbConfig implements JsonbConfigCustomizer {
     public void customize(javax.json.bind.JsonbConfig jsonbConfig) {
         jsonbConfig.withNullValues(true);
         jsonbConfig.withDeserializers(new ObjectIdDeserializer());
+        jsonbConfig.withSerializers(new ObjectIdSerializer());
     }
 }

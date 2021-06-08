@@ -1,4 +1,4 @@
-package com.example.boundary;
+package com.example.boundary.json;
 
 import org.bson.types.ObjectId;
 

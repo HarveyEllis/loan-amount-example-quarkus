@@ -43,6 +43,7 @@ public class Handler {
 
     @Incoming("loans-available-updates")
     public void saveLoanAvailableEvent(LoanAvailableEvent loanAvailableEvent) {
+        logger.info("Storing LoanAvailableEvent");
         loansAvailable.put(String.valueOf(requestNumber.getAndIncrement()), loanAvailableEvent);
     }
 

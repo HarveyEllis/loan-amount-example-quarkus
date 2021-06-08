@@ -116,7 +116,8 @@
     <div class="left-column">
         <p class="lead"> Below are the messages that have been received for loan availability events</p>
 
-        <h2>Messages Received</h2>
+        <h2>Messages Received </h2>
+        <p>Unformatted messages:</p>
         <div id="list">
         </div>
 
@@ -135,7 +136,7 @@
 </div>
 
 <script>
-    const evtSource = new EventSource("stream");
+    const evtSource = new EventSource("loans-available-stream");
     evtSource.onmessage = function(event) {
         const newElement = document.createElement("li");
         const eventList = document.getElementById("list");
