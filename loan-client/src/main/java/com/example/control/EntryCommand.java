@@ -5,13 +5,16 @@ import com.example.entity.LoanOfferRequest;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import io.quarkus.picocli.runtime.annotations.TopCommand;
+import io.smallrye.mutiny.Multi;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import picocli.CommandLine;
 
 import javax.inject.Inject;
+import javax.ws.rs.sse.InboundSseEvent;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @TopCommand
 @CommandLine.Command(name = "zopa-rate", mixinStandardHelpOptions = true, subcommands = {SendLoanOffers.class,
@@ -34,6 +37,8 @@ class SendLoanOffers implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("Sending");
+
         List<LoanOfferRequest> offerRequests = new ArrayList<>();
         try (Reader reader = new BufferedReader(new FileReader(csvFile))) {
             CSVReader csvReader = new CSVReader(reader);
@@ -50,20 +55,28 @@ class SendLoanOffers implements Runnable {
             e.printStackTrace();
         }
 
+
         offerRequests.forEach(loanOfferRequest -> {
             System.out.println("Sending loan offer: \n" + loanOfferRequest.toString());
             loanService.sendLoanOffer(loanOfferRequest);
         });
 
-        loanService.listenForLoansAvailable();
+//        loanServiceEvents.subscribe();
     }
 }
 
 @CommandLine.Command(name = "send-request", description = "Create a request for a loan")
 class SendLoanRequest implements Runnable {
+
+    @Inject
+    @RestClient
+    LoanService loanService;
+
     @Override
     public void run() {
         System.out.println("Hello World!");
+        Multi<InboundSseEvent> publisher = Multi.createFrom().publisher(loanService.getEvents());
+        publisher.onItem().invoke((Consumer<InboundSseEvent>) System.out::println).subscribe();
     }
 }
 

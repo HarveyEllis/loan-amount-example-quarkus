@@ -50,6 +50,10 @@
 <!--      <artifactId>quarkus-mongodb-panache</artifactId>-->
 <!--    </dependency>-->
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-jsonb</artifactId>
+    </dependency>
+    <dependency>
       <groupId>ch.obermuhlner</groupId>
       <artifactId>big-math</artifactId>
       <version>2.3.0</version>

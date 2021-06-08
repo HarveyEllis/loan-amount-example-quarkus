@@ -9,13 +9,13 @@ public class LoanOfferCommand {
 
     public String amount;
     public String rate;
-    public UUID lenderId;
+    public String lenderId;
 
     public LoanOfferCommand() {
         super();
     }
 
-    public LoanOfferCommand(String amount, UUID lenderId) {
+    public LoanOfferCommand(String amount, String lenderId) {
         this.amount = amount;
         this.lenderId = lenderId;
     }

@@ -36,7 +36,6 @@ public class LoanAvailabilityService {
     public static List<LoanAndOfferPair> calculateListOfLoansToFulfilAmount(BigDecimal amountRequested,
                                                                             List<LoanOffer> offers) {
         BigDecimal currentTotal = new BigDecimal(0);
-        logger.info(String.valueOf(offers));
         List<LoanAndOfferPair> loans = new ArrayList<>();
         int i = 0;
         while (currentTotal.compareTo(amountRequested) < 0) {
@@ -78,7 +77,6 @@ public class LoanAvailabilityService {
                 .onItem()
                 .ifNotNull()
                 .transform(offers -> {
-                    logger.info("offers reaching transform {}", offers);
                     List<LoanAndOfferPair> loansToFulfilAmount = calculateListOfLoansToFulfilAmount(amountRequested, offers);
                     try {
                         Loan terms = Loan.reduce(loansToFulfilAmount.stream().map(elem -> elem.loan).collect(Collectors.toList()));

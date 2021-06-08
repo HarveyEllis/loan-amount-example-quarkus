@@ -41,7 +41,7 @@ public class KafkaService {
     @Incoming("loan-offers-in")
     public CompletionStage<Void> onLoanOffer(final Message message) {
 
-        logger.debug("loan offer: {}", message.getPayload());
+        logger.debug("LoanOfferReceived: {}", message.getPayload());
 
         LoanOffer loanOffer = jsonb.fromJson(message.getPayload().toString(), LoanOffer.class);
 
@@ -54,10 +54,9 @@ public class KafkaService {
         LoanRequest loanRequest =
                 jsonb.fromJson(message.getPayload().toString(), LoanRequest.class);
         BigDecimal amountRequested = new BigDecimal(loanRequest.amount);
+        logger.info("LoanRequest received: {}", loanRequest);
 
-        logger.debug("loan request: {}", loanRequest);
-
-        return loanAvailabilityService.calculateLoanAvailability(amountRequested, loanRequest.requesterId)
+        return loanAvailabilityService.calculateLoanAvailability(amountRequested, loanRequest.borrowerId)
                 .invoke(this::sendLoanAvailable)
                 .subscribeAsCompletionStage()
                 .thenAccept(e -> logger.info(String.valueOf(e)))
@@ -65,7 +64,7 @@ public class KafkaService {
     }
 
     public CompletableFuture<Void> sendLoanAvailable(LoanAvailableEvent event) {
-        logger.info("Sending loan availability event: {}", event);
+        logger.info("Sending LoanAvailableEvent: {}", event);
         return loanAvailableEmitter.send(event).toCompletableFuture();
     }
 }

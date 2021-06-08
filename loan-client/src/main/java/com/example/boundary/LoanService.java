@@ -1,14 +1,18 @@
 package com.example.boundary;
 
+import com.example.entity.LoanAvailableEvent;
 import com.example.entity.LoanOfferRequest;
 import com.example.entity.LoanRequestRequest;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.reactivestreams.Publisher;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.sse.InboundSseEvent;
 import java.util.Set;
 
 @Path("/")
@@ -29,6 +33,6 @@ public interface LoanService {
 
     @GET
     @Path("loans-available-stream")
-    Response listenForLoansAvailable();
-
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    Publisher<InboundSseEvent> getEvents();
 }

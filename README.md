@@ -1,19 +1,60 @@
-# Plan
+# Loan example amount quarkus
 
-- create multimodule so that it can run all at once
-- use jbang for creating a ./zopa-loans script and compiling all at once
-- cucumber tests?
-- jacoco coverage
-- hibernate bean validation for their requirements
+The purpose of the project is to take a list of loan offers with rates and amounts, and then validate that a loan
+request can be fulfilled based on that list of offers.
 
-## Building
+This could of course be done using a simple command line interface, and in a few hundred lines of code, but that would
+not be enterprisey! On a more serious note it would also not be useable as a service deployed to a company's
+infrastructure.
 
-## Running/developing
+The other purpose of this project is to demonstrate and test out a bunch of modern java based tooling and see how that
+might create a better workflow. These tools include [quarkus](https://quarkus.io/) and its integration
+with [kafka](http://kafka.apache.org/).
+
+## Project structure
+
+This project contains a number of services each of which performs a specific purpose. A depiction of the full
+architecture can be seen below:
+
+![diagram](./docs/img/Loan%20amount%20example.png)
+
+### `core-service`
+
+- receives loan offer requests on a `/loan-offer` endpoint, parses them and puts them on a kafka topic, `loan-offers-in`
+- receives loan request requests on a `/loan-request` endpoint, parses them and puts them on a kafka
+  topic, `loan-requests-in`
+- receives `loan-available-events` from the kafka topic `loans-available` and stores them in an in-memory map
+- receives requests to get loans, either as a list of those that currently exist, or as a stream of server-sent events
+
+### `loan-amount-domain`
+
+- Contains models that would otherwise be duplicated across the other modules
+
+## Developing
+
+### Requirements
+
+There are a number of requirements for developing the project. These include:
+
+- java 11+ (used adoptopenkjdk 11.0.11+9, note that there is an error with the spotless plugin when using java
+  16, [see here](https://github.com/diffplug/spotless/issues/834))
+- docker with docker-compose (used docker-desktop 3.3.3)
+- maven 3+ (optional - can use warpper instead, used 3.8.3)
+- mongosh (optional - only for validating operation within mongo database, used 0.12.1)
+
+### Building
+
+The project can be built using the following command:
+
+```shell
+./mvnw clean install
+```
+
+### Running
 
 Two docker compose files
 
-Note that when running in quarkus:dev mode some of the kafka functionality can be a lot slower - on the order of 500ms
-rather than around 30-50ms.
+> Note that when running in quarkus:dev mode some of the kafka functionality can be a lot slower - on the order of 500ms rather than around 30-50ms. This is especially the case when using WSL.
 
 ## architecture
 
@@ -31,14 +72,38 @@ Uses convention of "in" for commands and "out" for things that would notify the 
 
 # Caveats
 
-- would do proper event storming
-- would make helm more variable
+There are a number of caveats
+
+Architecture and design
+
+- obviously this is overly complicated for what it does, but it does show kafka
+- would do proper event storming to come up with the events
+- would have a proper delete record system
+- might not go this granular - have a single loans service?
+- you'd probably want to do way more validation on the balances and accounts if you were going to do loans properly -
+  want to have some kind double entry bookkeeping system really?
+- maybe you'd have libraries for things like the domain model, and not put it in the same repo as the actual services
+
+Deployments
+
+- the properties in each of
+- would have a helm chart, jenkinsfile or something else to deploy it wit
+
+Testing
+
+- would do more testing
 - would want to decide on tests - cucumber? or just system tests?
 
-might not go this granular - have a single loans service?
+Project structure
+
+## Potential future directions
+
+- Fulfilment and payments stubs
+- Making offers to people
+- Storing those offers
 
 - the rationale for not doing this is that you would have the requests looking in the offers table which is something I
-don't think should really happen.
+  don't think should really happen.
 
 things like payments would do fulfilment etc
 
@@ -50,8 +115,7 @@ infrastructure setup would be different - you'd deploy it to something like open
 
 might put in separate repos?
 
-you'd probably want to do way more validation on the balances and accounts if you were going to do loans properly - want
-to have some kind double entry bookkeeping system really?
+
 
 What about making offers to multiple people?
 
@@ -70,13 +134,11 @@ a real corporate context this would be probably done by an in house library and 
 I've tried to show a few different things for testing: 
 - using quarkus test
 - using integration tests to run a whole lot of the app at once, and for spinning up kafka
-- using various standard 'enterprisey' libraries such as `assertj` and `equalsVerifier`.  
+- using various standard 'enterprisey' libraries such as `assertj`, `equalsVerifier` and `mockito`.
 
 ## Requires
 
-maven v3+ java 11+ (note that there is an error with spotless when using java
-16, [see here](https://github.com/diffplug/spotless/issues/834))
-docker-compose docker
+maven v3+ java 11+ docker-compose docker
 
 ## Caveats and deviations
 
@@ -135,3 +197,11 @@ docker exec -it setup_kafka_1 /bin/bash
 cd bin
 ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic loans-available --from-beginning
 ```
+
+## PLan?
+
+- create multimodule so that it can run all at once
+- use jbang for creating a ./zopa-loans script and compiling all at once
+- cucumber tests?
+- jacoco coverage
+- hibernate bean validation for their requirements
