@@ -93,6 +93,8 @@ Clean up afterwards:
 docker-compose -f setup/docker-compose-dev.yaml down --remove-orphans
 ```
 
+../mvnw quarkus:dev -Dquarkus.http.host=0.0.0.0
+
 ### database
 
 When the database is running, login with:

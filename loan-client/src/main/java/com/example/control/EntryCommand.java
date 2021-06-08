@@ -54,6 +54,8 @@ class SendLoanOffers implements Runnable {
             System.out.println("Sending loan offer: \n" + loanOfferRequest.toString());
             loanService.sendLoanOffer(loanOfferRequest);
         });
+
+        loanService.listenForLoansAvailable();
     }
 }
 

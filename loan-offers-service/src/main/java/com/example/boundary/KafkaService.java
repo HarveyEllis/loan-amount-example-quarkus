@@ -57,7 +57,7 @@ public class KafkaService {
 
         logger.debug("loan request: {}", loanRequest);
 
-        return loanAvailabilityService.calculateLoanAvailability(amountRequested)
+        return loanAvailabilityService.calculateLoanAvailability(amountRequested, loanRequest.requesterId)
                 .invoke(this::sendLoanAvailable)
                 .subscribeAsCompletionStage()
                 .thenAccept(e -> logger.info(String.valueOf(e)))

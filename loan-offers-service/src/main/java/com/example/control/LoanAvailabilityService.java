@@ -73,7 +73,7 @@ public class LoanAvailabilityService {
                 .createLoanAvailableEvent();
     }
 
-    public Uni<LoanAvailableEvent> calculateLoanAvailability(BigDecimal amountRequested) {
+    public Uni<LoanAvailableEvent> calculateLoanAvailability(BigDecimal amountRequested, String requesterId) {
         return loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amountRequested)
                 .onItem()
                 .ifNotNull()
