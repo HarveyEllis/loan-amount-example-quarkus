@@ -26,20 +26,24 @@ There is also a set of three docker containers, 2 for running kafka (kafka and z
 
 - receives loan offer requests on a `/loan-offer` endpoint, parses them and puts them on a kafka topic, `loan-offers-in`
 - receives loan request requests on a `/loan-request` endpoint, parses them and puts them on a kafka
-topic, `loan-requests-in`
+  topic, `loan-requests-in`
 - receives `loan-available-events` from the kafka topic `loans-available` and stores them in an in-memory map
 - receives requests to get loans, either as a list of those that currently exist, or as a stream of server-sent events
+
+> NB: This project uses convention of "in" for commands. If there were events that were going explicitly for user
+> consumption then the stream would be called out. It is not called that because `loans-available` would actually be an
+> internal stream in a real world application, and instead you'd have something like `loans-notifications-out` for updating
+> the user.
 
 ### `loan-offers-service`
 
 - receives loan offer commands from a kafka topic `loan-offers-in` and stores them in the mongodb database
-- receives loan request commands from a kafka topic `loan-requests-in`. Upon receiving this command
-the service reads the loans database, calculates availability and puts an `loan-available-event` on
-the `loans-available` kafka topic.
+- receives loan request commands from a kafka topic `loan-requests-in`. Upon receiving this command the service reads
+  the loans database, calculates availability and puts an `loan-available-event` on the `loans-available` kafka topic.
 - The way the service gets the lowest offers is by returning queries from the database ordered by rate and picking the
-	first n loan offers enough to cover the balance.
+  first n loan offers enough to cover the balance.
 - receives delete-record requests on a `/delete-records` endpoint. This deletes all records in the database, thus
-setting it back to fresh.
+  setting it back to fresh.
 
 ### `loan-client`
 
@@ -81,6 +85,7 @@ This will build the project and run all tests.
 
 Linting is provided by `spotless` ([link](https://github.com/diffplug/spotless)). This is not built into the ordinary
 build process as a step. Rather it must be running using:
+
 ```shell
 ./mvnw spotless:apply
 ```
@@ -189,7 +194,7 @@ database. This is so that you can run a different set of loan offers through the
 #### Using the HTTP request file
 
 There is also an HTTP request file that can be used directly in the `intellij` IDE to run requests. This is
-the `./requests/loan_amount_example-endpoints.http` file
+the `./requests/loan_amount_example-endpoints.http` file.
 
 #### Viewing received messages from server sent events in the browser
 
@@ -222,111 +227,17 @@ cd bin
 ```
 
 Replace $TOPIC_NAME with any of the below:
--
+
+- loans-available
+- loan-requests-in
+- loan-offers-in
 
 > NB: Descriptions of each of the topics and what they are used for is above in the
+> [Project structure](#Project-structure) section.
 
-## architecture
+#### Viewing records in the database
 
-- members service
--
-
-## events
-
-member created account added payment made loan offered - gets stored in loan offers service loan requested loan accepted
-by offerer loan accepted by requestor loan fulfilled - how would you go about doing this?
-
-loans/offer loans/request
-
-Uses convention of "in" for commands and "out" for things that would notify the user
-
-# Caveats
-
-There are a number of caveats
-
-Architecture and design
-
-- obviously this is overly complicated for what it does, but it does show kafka shows request response using an id (
-borrowerId/requesterId in this case, though this would be on a per-request basis in a real app), and hints at CQRS a
-little.
-- would do proper event storming to come up with the events
-- would have a proper delete record system this is obviously a bit of a cop out because in reality you probably wouldn't
-want to do this delete all at once at all
-- doing a command line - you'd want to validate things more
-- might not go this granular - have a single loans service?
-- you'd probably want to do way more validation on the balances and accounts if you were going to do loans properly -
-want to have some kind double entry bookkeeping system really?
-- maybe you'd have libraries for things like the domain model, and not put it in the same repo as the actual services
-
-Deployments
-
-- the properties in each of
-- would have a helm chart, jenkinsfile or something else to deploy it wit
-
-Testing
-
-- would do more testing
-- would want to decide on tests - cucumber? or just system tests?
-
-Project structure
-
-## Potential future directions
-
-- Fulfilment and payments stubs
-- Making offers to people
-- Storing those offers
-- Authentication and sending back only certain events - sessions
-
-- the rationale for not doing this is that you would have the requests looking in the offers table which is something I
-don't think should really happen.
-
-things like payments would do fulfilment etc
-
-accounts and stuff would be protected
-
-secrets wouldn't just be stored like that
-
-infrastructure setup would be different - you'd deploy it to something like openshift using argocd
-
-might put in separate repos?
-
-
-
-What about making offers to multiple people?
-
-- you'd want to send out multiple offers? Or you'd lock some offers for a certain amount of time?
-
-I'd probalby put more builders on classes, and also make some of the accesses private and final in this case
-
-The reason for Strings - makes it easier for conversion to kafka and vice versa but want to use bigdecimal for anything
-to do with calculating money, or alternatively it might be viable to use the java currency types
-
-## Testing rationale
-
-Done a bit of testing on the numeric functions, but I haven't done tests for things like nulls, or divices by zeros. In
-a real corporate context this would be probably done by an in house library and you wouldn't be doing all te
-
-I've tried to show a few different things for testing:
-- using quarkus test
-- using integration tests to run a whole lot of the app at once, and for spinning up kafka
-- using various standard 'enterprisey' libraries such as `assertj`, `equalsVerifier` and `mockito`.
-
-## Requires
-
-maven v3+ java 11+ docker-compose docker
-
-## Caveats and deviations
-
-
-## Additional future directions
-
-## Inspecting operation
-
-../mvnw quarkus:dev -Dquarkus.http.host=0.0.0.0
-
-### database
-
-When the database is running, login with:
+You may also want to see what is going in the database. When the database is running, login with:
 
 ```shell
 mongosh -u admin -p some-pw
@@ -341,25 +252,84 @@ show collections
 db.LoanOffer.find()
 ```
 
-### Building a native loan client executable
+## Caveats and considerations
 
-```shell
-cd loan-client
-../mvnw package -Dnative -Dquarkus.native.container-build=true
-```
+There are a great many caveats and things that could have been done better in the construction of this project. These
+will be explained here.
 
-This will take a few minutes. It also requires being able to pull the required graalvm docker image from dockerhub. See
-the [quarkus docs](https://quarkus.io/guides/maven-tooling) for more information on providing a specific docker image to
-use when building.
+### Architecture and design
 
-### Kafka
+There a number of points to be made on the architecture and design of this project:
 
+- Obbviously this is overly complicated for what it does, using kafka and a database and server and all. However, I
+  believe this is justified because:
+    - It shows the way that a real service might be structured, using real modern enterprise components - you wouldn't
+      have a CLI alone to do your business logic - how would your customers use that? You'd want it on a service so you
+      can easily connect to it from multiple locations and so that you have the application state all in one place.
+    - It shows how you might go about doing request/response with kafka using an id (borrowerId/requesterId in this
+      case, though this would be on a per-request basis in a real app)
+    - It hints at CQRS a little - with commands and queries being separate, albeit with only an in memory aggregate/view
+      and only for loan-available events
+- In terms of design, I would do probably do proper event storming to come up with the events.
+- For doing a command line app, you'd probably want more validation of the file, the data, and the file types.
+- The current way of deleting all records from the table is obviously a bit of a cop out because in reality you probably
+  wouldn't want to do this delete all at once, rather you'd delete single records when a member revokes a loan-offer,
+  and you'd want to have events for that too.
+- Strings have been used almost throughout for currencies. The reason for this is because the can store an arbitrary
+  amount of rounding with accuracy (compared with floating point) and it is easier for conversion to kafka and vice
+  versa. `BigDecimal` is used for anything to do with calculating money, or alternatively it might be viable to use the
+  java currency types, but `BigDecimal` allows for a higher degree of precision.
+- With more time I'd probably put more builders on classes, and also make some of the accesses private and final. In
+  this case this wasn't done because it makes json serialisation more faffy.
 
+### Deployments
 
-## PLan?
+- The way that the project is currently structured means that it is only really deployable locally. This would not be
+  the case in reality. Rather you'd have something like a helm chart, jenkinsfile or something else to deploy it with,
+  most likely to kubernetes using gitops with something like argocd.
+- Secrets wouldn't just be stored in the properties files like that, they'd be stored in a secrets manager, either cloud
+  based or something like hashicorp vault. Those secrets would then be pulled on app startup.
 
-- create multimodule so that it can run all at once
-- use jbang for creating a ./zopa-loans script and compiling all at once
-- cucumber tests?
-- jacoco coverage
-- hibernate bean validation for their requirements
+### Testing rationale
+
+- The level of testing is not appropriate for a project of this type. The testing that has been done is somewhat
+  indicative of what would be done, in terms of showing a bit of everything (including using various standard '
+  enterprisey' libraries such as `assertj`, `equalsVerifier` and `mockito`), but not in terms scope and coverage of the
+  whole project.
+    - Basically the only module that has been tested significantly is the `loan-offers-service`and, for unit tests,
+      the `loan-amount-domain`.
+- For unit testing on the numeric functions the main routes through the functions have been tested, but I haven't done
+  tests for things like nulls, divides by zeros or various other kind of edge cases/exceptions.
+    - In a real corporate context this would be probably done by an in house library and you wouldn't be doing all of
+      these calculations yourself.
+- For integration tests I've tried to show some of quarkus' functionality with quarkus test and test resources, as well
+  as using test containers. This allows spinning up of each module
+- There is an additional type of testing, which might be termed "acceptance" testing, "end-user" testing, or "system"
+  testing. TThis kind of test would use something like rest-assured, or cucumber. This type of testing has not been
+  done, though it might be argued that it is partially done by the fact that the `loan-client` exists.
+- Coverage is probably something that should be added using jacoco too.
+
+## Additional future directions
+
+There are a number of additional directions that this project could be taken in.
+
+- You'd want to do way more validation on the balances and accounts if you were going to do loans properly. You might
+  want to have some kind double entry bookkeeping system when taking payments from one member
+    - On a more simple note you'd probably want to do hibernate bean validation for certain input and output
+      requirements.
+    - Maybe you'd have libraries for things like the domain model, and not put it in the same repo as the actual
+      services. You'd most likely have libraries to do any sort of calculation and validation with money - both for
+      consistency across the company and for accuracy in implementation.
+- The rest of the updates would likely be adding additional functionality which would likely invole more services.
+    - You might want to do something with the fulfilment of those loans offered, which would most likely involve
+      accounts and payments services. You'd have to have a mechanism for a customer making a request, and then have a
+      fulfilment flow where the borrower takes up the offer, and the lender who accepts as well. You'd also have to
+      figure out other things like whether you offer out the same loans to multiple people at the same time, or when
+      they have been offered out do those loans go into some kind of "offer-pending" state? There are many more
+      considerations for doing actual fulfilment. You might want to have a separate service itself for doing loan
+      fulfilment.
+    - The other thing that seems missing is the notion of a member, and all the stuff that surrounds that, like
+      authentication. If there was a member service, then you'd be able to say that a specific member has requested a
+      loan, and do things like only return loans to members that they have requested (not all loans available as now).
+      You'd be able to have sessions and do more on the front end in this regard.  
+
