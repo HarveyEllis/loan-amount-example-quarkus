@@ -9,7 +9,12 @@ infrastructure.
 
 The other purpose of this project is to demonstrate and test out a bunch of modern java based tooling and see how that
 might create a better workflow. These tools include [quarkus](https://quarkus.io/) and its integration
-with [kafka](http://kafka.apache.org/).
+with [kafka](http://kafka.apache.org/). The project makes quite heavy use of reactive programming (which is offered by
+quarkus) including [microprofile](https://microprofile.io/) and [mutiny](https://smallrye.io/smallrye-mutiny).
+
+The project has been heavily influenced
+by [red hats coffee shop demo - quarkus-cafe-demo](https://github.com/jeremyrdavis/quarkus-cafe-demo) and draws on much
+of the [quarkus documentation](quarkus.io/guides/).
 
 ## Project structure
 
