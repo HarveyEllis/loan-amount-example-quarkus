@@ -65,10 +65,12 @@ public class LoanAvailabilityService {
      *
      * @return false and empty loan available event
      */
-    public LoanAvailableEvent createLoanNotAvailableEvent() {
+    public LoanAvailableEvent createLoanNotAvailableEvent(String requesterId, String requestedAmount) {
         logger.debug("Creating loan not available event");
         return new LoanAvailableEvent.LoanAvailableEventBuilder()
                 .setAvailable(false)
+                .setRequesterId(requesterId)
+                .setRequestedAmount(requestedAmount)
                 .createLoanAvailableEvent();
     }
 
@@ -88,7 +90,7 @@ public class LoanAvailabilityService {
                         return null;
                     }
                 })
-                .onItem().ifNull().continueWith(this::createLoanNotAvailableEvent);
+                .onItem().ifNull().continueWith(() -> createLoanNotAvailableEvent(requesterId, amountRequested.toString()));
 
     }
 

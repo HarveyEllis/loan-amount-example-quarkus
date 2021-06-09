@@ -1,7 +1,6 @@
 /* (C)2021 */
 package com.example.entity;
 
-import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;

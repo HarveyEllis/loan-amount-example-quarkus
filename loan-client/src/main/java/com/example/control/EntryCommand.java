@@ -5,7 +5,7 @@ import picocli.CommandLine;
 
 @TopCommand
 @CommandLine.Command(name = "zopa-rate", mixinStandardHelpOptions = true, subcommands = {SendLoanOffers.class,
-        SendLoanRequest.class, GetLoansAvailable.class})
+        SendLoanRequest.class, GetLoansAvailable.class, ResetRecords.class})
 public class EntryCommand {
 }
 

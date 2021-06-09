@@ -1,6 +1,5 @@
 package com.example.boundary;
 
-import com.example.entity.LoanAvailableEvent;
 import com.example.entity.LoanOfferRequest;
 import com.example.entity.LoanRequestRequest;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
@@ -13,7 +12,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.sse.InboundSseEvent;
-import java.util.Set;
 
 @Path("/")
 @RegisterRestClient
@@ -21,7 +19,7 @@ public interface LoanService {
 
     @GET
     @Path("loans-available")
-    Set<LoanAvailableEvent> getLoansAvailable();
+    Response getLoansAvailable();
 
     @POST
     @Path("loan-offer")

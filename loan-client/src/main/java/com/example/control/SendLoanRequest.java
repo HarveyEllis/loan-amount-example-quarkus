@@ -9,23 +9,26 @@ import picocli.CommandLine;
 
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
-import javax.ws.rs.sse.InboundSseEvent;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "send-request", description = "Create a request for a loan")
-class SendLoanRequest implements Runnable {
+@CommandLine.Command(name = "loan-request", description = "Create a request for a loan")
+class SendLoanRequest implements Callable<Integer> {
 
-//    @CommandLine.Option(
-//            names = {"-i", "--identity"},
-//            description = "The identity to be used when making the request to the service",
-//            required = false)
-//    String borrowerId;
-//
-//    @CommandLine.Option(
-//            names = {"-a", "--amount"},
-//            description = "The amount for the loan to request",
-//            required = true)
-//    String amount;
+    @CommandLine.Option(
+            names = {"-i", "--identity"},
+            description = "The identity to be used when making the request to the service",
+            required = false)
+    String borrowerId;
+
+    @CommandLine.Option(
+            names = {"-a", "--amount"},
+            description = "The amount for the loan to request",
+            required = true)
+    String amount;
 
     @Inject
     @RestClient
@@ -35,27 +38,41 @@ class SendLoanRequest implements Runnable {
     Jsonb jsonb;
 
     @Override
-    public void run() {
-//        System.out.println("Setting up subcriber");
-//        Multi<InboundSseEvent> publisher = Multi.createFrom().publisher(loanService.getEvents());
-//        publisher.map(inboundSseEvent -> jsonb.fromJson(inboundSseEvent.readData(), LoanAvailableEvent.class))
-//                .subscribe().with(System.out::println);
+    public Integer call() {
+        if (null == this.borrowerId) borrowerId = UUID.randomUUID().toString();
+        LoanRequestRequest loanRequestRequest = new LoanRequestRequest();
+        loanRequestRequest.amount = amount;
+        loanRequestRequest.borrowerId = this.borrowerId;
 
-        System.out.println("Hello World!");
-        Multi<InboundSseEvent> publisher = Multi.createFrom().publisher(loanService.getEvents());
-        publisher.map(inboundSseEvent -> jsonb.fromJson(inboundSseEvent.readData(), LoanAvailableEvent.class)).subscribe().with(System.out::println);
+        System.out.println("Setting up subcriber");
+        Multi<LoanAvailableEvent> serverSentLoanEvents = Multi.createFrom().publisher(loanService.getEvents())
+                .map(inboundSseEvent -> jsonb.fromJson(inboundSseEvent.readData(), LoanAvailableEvent.class))
+                .select().where(loanAvailableEvent -> loanAvailableEvent.requesterId.equals(borrowerId))
+                .select().first(1);
 
-//        if (null == this.borrowerId) borrowerId = UUID.randomUUID().toString();
-//        LoanRequestRequest loanRequestRequest = new LoanRequestRequest();
-//        loanRequestRequest.amount = amount;
-//        loanRequestRequest.borrowerId = this.borrowerId;
-//
-//        System.out.println("Making request to service");
-//        loanService.sendLoanRequest(loanRequestRequest);
+        System.out.println("Making request to service");
+        loanService.sendLoanRequest(loanRequestRequest);
 
-//                Uni<InboundSseEvent> publisher = Uni.createFrom().publisher(loanService.getEvents());
+        serverSentLoanEvents
+                .subscribe().with(this::printLoanAvailableOutput);
+        return 0;
+    }
 
-//        String s = publisher.await().atMost(Duration.of(10, ChronoUnit.SECONDS));
-//        System.out.println(s);
+    private void printLoanAvailableOutput(LoanAvailableEvent loanAvailableEvent) {
+        MathContext twoSf = new MathContext(2, RoundingMode.HALF_UP);
+
+        System.out.println();
+//        System.out.println("Requested amount: " + loanAvailableEvent.requestedAmount);
+        System.out.println("Loan available = " + loanAvailableEvent.available);
+
+        if (loanAvailableEvent.available) {
+            System.out.println("Annual interest rate = " + new BigDecimal(loanAvailableEvent.annualInterestRate)
+                    .multiply(new BigDecimal(100))
+                    .round(twoSf) + "%");
+            System.out.println("Monthly repayment = " + new BigDecimal(loanAvailableEvent.monthlyRepayment)
+                    .setScale(2, RoundingMode.HALF_UP));
+            System.out.println("Total Repayment = " + new BigDecimal(loanAvailableEvent.totalRepayment)
+                    .setScale(2, RoundingMode.HALF_UP));
+        }
     }
 }

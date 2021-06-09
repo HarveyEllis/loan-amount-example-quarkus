@@ -37,24 +37,15 @@ public class LoanAvailableEvent {
 
     @Override
     public String toString() {
-        return "LoanAvailableEvent{"
-                + "available="
-                + available
-                + ", requestedAmount='"
-                + requestedAmount
-                + '\''
-                + ", annualInterestRate='"
-                + annualInterestRate
-                + '\''
-                + ", monthlyRepayment='"
-                + monthlyRepayment
-                + '\''
-                + ", totalRepayment='"
-                + totalRepayment
-                + '\''
-                + ", loanOffers="
-                + loanOffers
-                + '}';
+        return "LoanAvailableEvent{" +
+                "available=" + available +
+                ", requestedAmount='" + requestedAmount + '\'' +
+                ", annualInterestRate='" + annualInterestRate + '\'' +
+                ", monthlyRepayment='" + monthlyRepayment + '\'' +
+                ", totalRepayment='" + totalRepayment + '\'' +
+                ", requesterId='" + requesterId + '\'' +
+                ", loanOffers=" + loanOffers +
+                '}';
     }
 
     public static class LoanAvailableEventBuilder {

@@ -45,12 +45,9 @@ class SendLoanOffers implements Runnable {
             e.printStackTrace();
         }
 
-
         offerRequests.forEach(loanOfferRequest -> {
             System.out.println("Sending loan offer: \n" + loanOfferRequest.toString());
             loanService.sendLoanOffer(loanOfferRequest);
         });
-
-//        loanServiceEvents.subscribe();
     }
 }
