@@ -39,8 +39,7 @@ public class KafkaService {
 
     @Incoming("loan-offers-in")
     public CompletionStage<Void> onLoanOffer(final Message message) {
-
-        logger.debug("LoanOfferReceived: {}", message.getPayload());
+        logger.info("LoanOfferReceived: {}", message.getPayload());
 
         LoanOffer loanOffer = jsonb.fromJson(message.getPayload().toString(), LoanOffer.class);
 
@@ -53,10 +52,10 @@ public class KafkaService {
 
     @Incoming("loan-requests-in")
     public CompletionStage<Void> onLoanRequest(final Message message) {
+        logger.info("LoanRequest received: {}", message.getPayload());
         LoanRequest loanRequest =
                 jsonb.fromJson(message.getPayload().toString(), LoanRequest.class);
         BigDecimal amountRequested = new BigDecimal(loanRequest.amount);
-        logger.info("LoanRequest received: {}", loanRequest);
 
         return loanAvailabilityService
                 .calculateLoanAvailability(amountRequested, loanRequest.borrowerId)

@@ -14,8 +14,9 @@ public class LoanOfferCommand {
         super();
     }
 
-    public LoanOfferCommand(String amount, String lenderId) {
+    public LoanOfferCommand(String amount, String rate, String lenderId) {
         this.amount = amount;
+        this.rate = rate;
         this.lenderId = lenderId;
     }
 }

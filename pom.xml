@@ -9,11 +9,12 @@
     <packaging>pom</packaging>
     <name>Loan amount example</name>
     <modules>
-        <module>core-service</module>
-        <module>loan-amount-domain</module>
-        <module>loan-offers-service</module>
-    <module>loan-client</module>
-  </modules>
+      <module>core-service</module>
+      <module>loan-amount-domain</module>
+      <module>loan-offers-service</module>
+      <module>loan-client</module>
+      <module>test-utils</module>
+    </modules>
   <properties>
     <assertj.version>3.19.0</assertj.version>
     <spotless.version>2.11.1</spotless.version>
