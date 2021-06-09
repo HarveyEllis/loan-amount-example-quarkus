@@ -1,0 +1,30 @@
+POST http://localhost:8080/loan-offer
+Content-Type: application/json
+
+{
+  "amount": 2000,
+  "rate": "0.075",
+  "lenderId": "Jane"
+}
+
+###
+POST http://localhost:8080/loan-request
+Content-Type: application/json
+
+{
+  "amount": 1700,
+  "borrowerId": "Tom"
+}
+
+###
+GET http://localhost:8080/loans-available-stream
+
+###
+GET http://localhost:8080/loans-available
+
+###
+POST http://localhost:8081/delete-records
+Content-Type: application/json
+
+{}
+

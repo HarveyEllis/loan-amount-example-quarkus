@@ -18,6 +18,10 @@ architecture can be seen below:
 
 ![diagram](./docs/img/Loan%20amount%20example.png)
 
+The project is made up of 4 modules, 2 of which are services, 1 is a client, and 1 is a library.
+
+There is also a set of three docker containers, 2 for running kafka (kafka and zookeeper) and 1 for a mongodb database.
+
 ### `core-service`
 
 - receives loan offer requests on a `/loan-offer` endpoint, parses them and puts them on a kafka topic, `loan-offers-in`
@@ -25,6 +29,23 @@ architecture can be seen below:
   topic, `loan-requests-in`
 - receives `loan-available-events` from the kafka topic `loans-available` and stores them in an in-memory map
 - receives requests to get loans, either as a list of those that currently exist, or as a stream of server-sent events
+
+### `loan-offers-service`
+
+- receives loan offer commands from a kafka topic `loan-offers-in` and stores them in the mongodb database
+- receives loan request commands from a kafka topic `loan-requests-in`. Upon receiving this command  
+  the service reads the loans database, calculates availability and puts an `loan-available-event` on
+  the `loans-available` kafka topic.
+  - The way the service gets the lowest offers is by returning queries from the database ordered by rate and picking the
+    first n loan offers enough to cover the balance.
+- receives delete-record requests on a `/delete-records` endpoint. This deletes all records in the database, thus
+  setting it back to fresh.
+
+### `loan-client`
+
+- Contains a `loan-client` that can be used to send requests to the services. See
+  the [Operation of loan client CLI](#Operation-of-loan-client-CLI) section below for more information on how to use
+  this.
 
 ### `loan-amount-domain`
 
@@ -44,17 +65,136 @@ There are a number of requirements for developing the project. These include:
 
 ### Building
 
-The project can be built using the following command:
+The project can be built using the following command from the root of the project
 
 ```shell
 ./mvnw clean install
 ```
 
-### Running
+This will build the project and run all tests.
 
-Two docker compose files
+> NB: Please be aware that for the services in this project the jar is not an uber-jar (except for the `loan-client`)
+> and so is not runnable by itself, and instead must be run using the quarkus run jar.
+>
 
-> Note that when running in quarkus:dev mode some of the kafka functionality can be a lot slower - on the order of 500ms rather than around 30-50ms. This is especially the case when using WSL.
+#### Linting
+
+Linting is provided by `spotless` ([link](https://github.com/diffplug/spotless)). This is not built into the ordinary
+build process as a step. Rather it must be running using:
+
+### Running the application in prod mode locally
+
+To run application using docker run:
+
+```shell
+docker-compose -f setup/docker-compose.yaml up --remove-orphans --force-recreate --build
+```
+
+This will build and start the docker containers. Note that you must have built the jars beforehand
+using `mvn clean install`!
+
+When you're done you can clean up the containers. For cleaning up the containers afterwards use:
+
+```shell
+docker-compose -f setup/docker-compose.yaml down --remove-orphans
+```
+
+### Running the application in dev mode locally
+
+To run the application in dev mode you first need to start the kafka stubs:
+
+```shell
+docker-compose -f setup/docker-compose-dev.yaml up --remove-orphans --force-recreate --build
+```
+
+You then need to open new terminals/shells and start the services, one in each terminal:
+
+**Core service:**
+
+```shell
+cd ./core-service
+../mvnw compile quarkus:dev
+```
+
+**Loan offers service**
+
+```shell
+cd ./loan-offers-service
+../mvnw compile quarkus:dev
+```
+
+Alternatively, intellij has functionality for running quarkus configurations from 2020.3 onwards.
+
+> **_NOTE:_**  Quarkus has a Dev UI, which is available in dev mode only. This can be found at
+> http://localhost:8080/q/dev/ for the `core-service` and http://localhost:8081/q/dev/ for the `loan-offers-service`
+
+When you're done, you can stop the app processes and clean up the containers. For cleaning up the containers afterwards
+use:
+
+```shell
+docker-compose -f setup/docker-compose-dev.yaml down --remove-orphans
+```
+
+### Sending requests and interacting with the services
+
+You can use the loan client to make requests to the services.
+
+To run the client, first `cd` into the `loan-client` directory. Command line instructions and help are available when
+you run `./zopa-rate`. The options presented are as follows:
+
+```
+Usage: zopa-rate [-hV] [COMMAND]
+  -h, --help      Show this help message and exit.
+  -V, --version   Print version information and exit.
+Commands:
+  send-offers           Send a loan to the service
+  loan-request          Create a request for a loan
+  list-available-loans  List loans that are available and have been processed
+                          on the service
+  reset-records         Make a request to reset the currently stored records
+```
+
+#### Operation of loan client CLI
+
+To send a csv file of loan offers, use the following command:
+
+```shell
+./zopa-rate send-offers -f offers.csv
+```
+
+A file of example loan offers is provided, called `offers.csv`
+
+To send a loan-request run:
+
+```shell
+./zopa-rate loan-request -a 1700
+```
+
+This command will wait until getting a request back from the services.
+
+> NB: You may have to exit this command with CTRL-C as it sets up a client to listen to a stream of server sent events, and may take up to about 15 seconds to disconnect.
+
+You can view all the loan-available-events recorded by on the service using the `list-available-loans` command:
+
+```shell
+./zopa-rate list-available-loans
+```
+
+**_IMPORTANT:_** You must run the `reset-records` command in order to reset the loan-offers stored by the mongodb
+database. This is so that you can run a different set of loan offers through the service.
+
+#### Using the HTTP request file
+
+There is also an HTTP request file that can be used directly in the `intellij` IDE to run requests. This is
+the `./requests/loan_amount_example-endpoints.http` file
+
+#### Viewing received messages from server sent events in the browser
+
+There is also a web page available at `http://localhost:8080` which listens for server sent events - loan available
+events.
+
+To see this in operation, open the web page and then send a few requests using the `loan-client`, you should see the
+requests come in, albeit unformatted.
 
 ## architecture
 
@@ -76,9 +216,13 @@ There are a number of caveats
 
 Architecture and design
 
-- obviously this is overly complicated for what it does, but it does show kafka
+- obviously this is overly complicated for what it does, but it does show kafka shows request response using an id (
+  borrowerId/requesterId in this case, though this would be on a per-request basis in a real app), and hints at CQRS a
+  little.
 - would do proper event storming to come up with the events
-- would have a proper delete record system
+- would have a proper delete record system this is obviously a bit of a cop out because in reality you probably wouldn't
+  want to do this delete all at once at all
+- doing a command line - you'd want to validate things more
 - might not go this granular - have a single loans service?
 - you'd probably want to do way more validation on the balances and accounts if you were going to do loans properly -
   want to have some kind double entry bookkeeping system really?
@@ -101,6 +245,7 @@ Project structure
 - Fulfilment and payments stubs
 - Making offers to people
 - Storing those offers
+- Authentication and sending back only certain events - sessions
 
 - the rationale for not doing this is that you would have the requests looking in the offers table which is something I
   don't think should really happen.
@@ -146,14 +291,6 @@ maven v3+ java 11+ docker-compose docker
 ## Additional future directions
 
 ## Inspecting operation
-
-```shell
-docker-compose -f setup/docker-compose-dev.yaml up --remove-orphans --force-recreate --build
-```
-Clean up afterwards:
-```shell
-docker-compose -f setup/docker-compose-dev.yaml down --remove-orphans
-```
 
 ../mvnw quarkus:dev -Dquarkus.http.host=0.0.0.0
 
