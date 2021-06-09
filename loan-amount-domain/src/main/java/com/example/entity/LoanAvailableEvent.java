@@ -4,8 +4,8 @@ package com.example.entity;
 import java.util.List;
 
 /**
- * This is an event that is triggered when a loan availability calculation has been successfully carried out and a loan
- * is either available or not available
+ * This is an event that is triggered when a loan availability calculation has been successfully
+ * carried out and a loan is either available or not available
  */
 public class LoanAvailableEvent {
     public boolean available;
@@ -16,7 +16,7 @@ public class LoanAvailableEvent {
     public String requesterId;
     public List<LoanOffer> loanOffers;
 
-    public LoanAvailableEvent(){}
+    public LoanAvailableEvent() {}
 
     public LoanAvailableEvent(
             boolean available,
@@ -37,15 +37,27 @@ public class LoanAvailableEvent {
 
     @Override
     public String toString() {
-        return "LoanAvailableEvent{" +
-                "available=" + available +
-                ", requestedAmount='" + requestedAmount + '\'' +
-                ", annualInterestRate='" + annualInterestRate + '\'' +
-                ", monthlyRepayment='" + monthlyRepayment + '\'' +
-                ", totalRepayment='" + totalRepayment + '\'' +
-                ", requesterId='" + requesterId + '\'' +
-                ", loanOffers=" + loanOffers +
-                '}';
+        return "LoanAvailableEvent{"
+                + "available="
+                + available
+                + ", requestedAmount='"
+                + requestedAmount
+                + '\''
+                + ", annualInterestRate='"
+                + annualInterestRate
+                + '\''
+                + ", monthlyRepayment='"
+                + monthlyRepayment
+                + '\''
+                + ", totalRepayment='"
+                + totalRepayment
+                + '\''
+                + ", requesterId='"
+                + requesterId
+                + '\''
+                + ", loanOffers="
+                + loanOffers
+                + '}';
     }
 
     public static class LoanAvailableEventBuilder {

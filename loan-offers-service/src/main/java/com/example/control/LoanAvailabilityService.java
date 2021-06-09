@@ -8,33 +8,31 @@ import com.example.entity.LoanAvailableEvent;
 import com.example.entity.LoanOffer;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.smallrye.mutiny.Uni;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 @RegisterForReflection
 public class LoanAvailabilityService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanAvailabilityService.class);
-    // These would probably be somewhere else in actuality, stored either in the loan offer or made configurable
+    // These would probably be somewhere else in actuality, stored either in the loan offer or made
+    // configurable
     // somewhere.
     private static int numberOfPayments = 36;
     private static int paymentsPerAnnum = 12;
-    @Inject
-    LoanOfferRepository loanOfferRepository;
+    @Inject LoanOfferRepository loanOfferRepository;
 
-    public LoanAvailabilityService() {
-    }
+    public LoanAvailabilityService() {}
 
-    public static List<LoanAndOfferPair> calculateListOfLoansToFulfilAmount(BigDecimal amountRequested,
-                                                                            List<LoanOffer> offers) {
+    public static List<LoanAndOfferPair> calculateListOfLoansToFulfilAmount(
+            BigDecimal amountRequested, List<LoanOffer> offers) {
         BigDecimal currentTotal = new BigDecimal(0);
         List<LoanAndOfferPair> loans = new ArrayList<>();
         int i = 0;
@@ -46,12 +44,15 @@ public class LoanAvailabilityService {
                 loanOfferPrincipal = amountRequested.subtract(currentTotal);
             }
 
-            LoanAndOfferPair pair = new LoanAndOfferPair(new Loan.LoanBuilder()
-                    .setPrincipal(loanOfferPrincipal)
-                    .setYearlyRate(new BigDecimal(loanOffer.rate))
-                    .setPaymentsPerAnnum(paymentsPerAnnum)
-                    .setNumberOfPayments(numberOfPayments)
-                    .createLoan(), loanOffer);
+            LoanAndOfferPair pair =
+                    new LoanAndOfferPair(
+                            new Loan.LoanBuilder()
+                                    .setPrincipal(loanOfferPrincipal)
+                                    .setYearlyRate(new BigDecimal(loanOffer.rate))
+                                    .setPaymentsPerAnnum(paymentsPerAnnum)
+                                    .setNumberOfPayments(numberOfPayments)
+                                    .createLoan(),
+                            loanOffer);
             loans.add(pair);
 
             currentTotal = currentTotal.add(loanOfferPrincipal);
@@ -65,7 +66,8 @@ public class LoanAvailabilityService {
      *
      * @return false and empty loan available event
      */
-    public LoanAvailableEvent createLoanNotAvailableEvent(String requesterId, String requestedAmount) {
+    public LoanAvailableEvent createLoanNotAvailableEvent(
+            String requesterId, String requestedAmount) {
         logger.debug("Creating loan not available event");
         return new LoanAvailableEvent.LoanAvailableEventBuilder()
                 .setAvailable(false)
@@ -74,34 +76,49 @@ public class LoanAvailabilityService {
                 .createLoanAvailableEvent();
     }
 
-    public Uni<LoanAvailableEvent> calculateLoanAvailability(BigDecimal amountRequested, String requesterId) {
-        return loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amountRequested)
+    public Uni<LoanAvailableEvent> calculateLoanAvailability(
+            BigDecimal amountRequested, String requesterId) {
+        return loanOfferRepository
+                .retrieveLoanOffersThatSumToAtLeastValue(amountRequested)
                 .onItem()
                 .ifNotNull()
-                .transform(offers -> {
-                    List<LoanAndOfferPair> loansToFulfilAmount = calculateListOfLoansToFulfilAmount(amountRequested, offers);
-                    try {
-                        Loan terms = Loan.reduce(loansToFulfilAmount.stream().map(elem -> elem.loan).collect(Collectors.toList()));
-                        List<LoanOffer> loanOffers =
-                                loansToFulfilAmount.stream().map(elem -> elem.loanOffer).collect(Collectors.toList());
-                        return this.createLoanAvailableEvent(loanOffers, terms, requesterId);
-                    } catch (IncompatibleLoanTermsException e) {
-                        logger.error("Could not reduce loans to a single amount", e);
-                        return null;
-                    }
-                })
-                .onItem().ifNull().continueWith(() -> createLoanNotAvailableEvent(requesterId, amountRequested.toString()));
-
+                .transform(
+                        offers -> {
+                            List<LoanAndOfferPair> loansToFulfilAmount =
+                                    calculateListOfLoansToFulfilAmount(amountRequested, offers);
+                            try {
+                                Loan terms =
+                                        Loan.reduce(
+                                                loansToFulfilAmount.stream()
+                                                        .map(elem -> elem.loan)
+                                                        .collect(Collectors.toList()));
+                                List<LoanOffer> loanOffers =
+                                        loansToFulfilAmount.stream()
+                                                .map(elem -> elem.loanOffer)
+                                                .collect(Collectors.toList());
+                                return this.createLoanAvailableEvent(
+                                        loanOffers, terms, requesterId);
+                            } catch (IncompatibleLoanTermsException e) {
+                                logger.error("Could not reduce loans to a single amount", e);
+                                return null;
+                            }
+                        })
+                .onItem()
+                .ifNull()
+                .continueWith(
+                        () -> createLoanNotAvailableEvent(requesterId, amountRequested.toString()));
     }
 
     /**
-     * Creates a loan available event using a list of loan offers. It starts at the first loan offer, sees how much
-     * that can fulfil the loan and continues until the loan principal is fully covered.
+     * Creates a loan available event using a list of loan offers. It starts at the first loan
+     * offer, sees how much that can fulfil the loan and continues until the loan principal is fully
+     * covered.
      *
      * @param loanOffers A list of loanOffers
      * @return
      */
-    private LoanAvailableEvent createLoanAvailableEvent(List<LoanOffer> loanOffers, Loan loanTerms, String requesterId) {
+    private LoanAvailableEvent createLoanAvailableEvent(
+            List<LoanOffer> loanOffers, Loan loanTerms, String requesterId) {
         logger.debug("Creating loan available event");
         return new LoanAvailableEvent.LoanAvailableEventBuilder()
                 .setAvailable(!loanOffers.isEmpty())

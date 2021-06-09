@@ -26,26 +26,26 @@ There is also a set of three docker containers, 2 for running kafka (kafka and z
 
 - receives loan offer requests on a `/loan-offer` endpoint, parses them and puts them on a kafka topic, `loan-offers-in`
 - receives loan request requests on a `/loan-request` endpoint, parses them and puts them on a kafka
-  topic, `loan-requests-in`
+topic, `loan-requests-in`
 - receives `loan-available-events` from the kafka topic `loans-available` and stores them in an in-memory map
 - receives requests to get loans, either as a list of those that currently exist, or as a stream of server-sent events
 
 ### `loan-offers-service`
 
 - receives loan offer commands from a kafka topic `loan-offers-in` and stores them in the mongodb database
-- receives loan request commands from a kafka topic `loan-requests-in`. Upon receiving this command  
-  the service reads the loans database, calculates availability and puts an `loan-available-event` on
-  the `loans-available` kafka topic.
-  - The way the service gets the lowest offers is by returning queries from the database ordered by rate and picking the
-    first n loan offers enough to cover the balance.
+- receives loan request commands from a kafka topic `loan-requests-in`. Upon receiving this command
+the service reads the loans database, calculates availability and puts an `loan-available-event` on
+the `loans-available` kafka topic.
+- The way the service gets the lowest offers is by returning queries from the database ordered by rate and picking the
+	first n loan offers enough to cover the balance.
 - receives delete-record requests on a `/delete-records` endpoint. This deletes all records in the database, thus
-  setting it back to fresh.
+setting it back to fresh.
 
 ### `loan-client`
 
 - Contains a `loan-client` that can be used to send requests to the services. See
-  the [Operation of loan client CLI](#Operation-of-loan-client-CLI) section below for more information on how to use
-  this.
+the [Operation of loan client CLI](#Operation-of-loan-client-CLI) section below for more information on how to use
+this.
 
 ### `loan-amount-domain`
 
@@ -58,7 +58,7 @@ There is also a set of three docker containers, 2 for running kafka (kafka and z
 There are a number of requirements for developing the project. These include:
 
 - java 11+ (used adoptopenkjdk 11.0.11+9, note that there is an error with the spotless plugin when using java
-  16, [see here](https://github.com/diffplug/spotless/issues/834))
+16, [see here](https://github.com/diffplug/spotless/issues/834))
 - docker with docker-compose (used docker-desktop 3.3.3)
 - maven 3+ (optional - can use warpper instead, used 3.8.3)
 - mongosh (optional - only for validating operation within mongo database, used 0.12.1)
@@ -81,6 +81,9 @@ This will build the project and run all tests.
 
 Linting is provided by `spotless` ([link](https://github.com/diffplug/spotless)). This is not built into the ordinary
 build process as a step. Rather it must be running using:
+```shell
+./mvnw spotless:apply
+```
 
 ### Running the application in prod mode locally
 
@@ -144,14 +147,14 @@ you run `./zopa-rate`. The options presented are as follows:
 
 ```
 Usage: zopa-rate [-hV] [COMMAND]
-  -h, --help      Show this help message and exit.
-  -V, --version   Print version information and exit.
+-h, --help      Show this help message and exit.
+-V, --version   Print version information and exit.
 Commands:
-  send-offers           Send a loan to the service
-  loan-request          Create a request for a loan
-  list-available-loans  List loans that are available and have been processed
-                          on the service
-  reset-records         Make a request to reset the currently stored records
+send-offers           Send a loan to the service
+loan-request          Create a request for a loan
+list-available-loans  List loans that are available and have been processed
+						on the service
+reset-records         Make a request to reset the currently stored records
 ```
 
 #### Operation of loan client CLI
@@ -196,6 +199,33 @@ events.
 To see this in operation, open the web page and then send a few requests using the `loan-client`, you should see the
 requests come in, albeit unformatted.
 
+#### Viewing messages as they get sent over kafka
+
+It is possible to view the logs for the containers using `docker logs <container_name`, or looking at the service's
+stdouts when running in dev mode. (Each request is logged).
+
+However, what if we want to see messages as they go across kafka? Well do this we first need to dxec into the kafka
+container:
+
+```shell
+docker exec -it setup_kafka_1 /bin/bash
+```
+
+> NB: This should be the name of the kafka container if you have used the commands above. If not find the name of the
+> container with the strimzi/kafka image, using `docker ps` and replace the name above.
+
+We can the `cd` into the `bin` folder, and run the `kafka-console-consumer` as shown below:
+
+```shell
+cd bin
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic $TOPIC_NAME --from-beginning
+```
+
+Replace $TOPIC_NAME with any of the below:
+-
+
+> NB: Descriptions of each of the topics and what they are used for is above in the
+
 ## architecture
 
 - members service
@@ -217,15 +247,15 @@ There are a number of caveats
 Architecture and design
 
 - obviously this is overly complicated for what it does, but it does show kafka shows request response using an id (
-  borrowerId/requesterId in this case, though this would be on a per-request basis in a real app), and hints at CQRS a
-  little.
+borrowerId/requesterId in this case, though this would be on a per-request basis in a real app), and hints at CQRS a
+little.
 - would do proper event storming to come up with the events
 - would have a proper delete record system this is obviously a bit of a cop out because in reality you probably wouldn't
-  want to do this delete all at once at all
+want to do this delete all at once at all
 - doing a command line - you'd want to validate things more
 - might not go this granular - have a single loans service?
 - you'd probably want to do way more validation on the balances and accounts if you were going to do loans properly -
-  want to have some kind double entry bookkeeping system really?
+want to have some kind double entry bookkeeping system really?
 - maybe you'd have libraries for things like the domain model, and not put it in the same repo as the actual services
 
 Deployments
@@ -248,7 +278,7 @@ Project structure
 - Authentication and sending back only certain events - sessions
 
 - the rationale for not doing this is that you would have the requests looking in the offers table which is something I
-  don't think should really happen.
+don't think should really happen.
 
 things like payments would do fulfilment etc
 
@@ -276,7 +306,7 @@ to do with calculating money, or alternatively it might be viable to use the jav
 Done a bit of testing on the numeric functions, but I haven't done tests for things like nulls, or divices by zeros. In
 a real corporate context this would be probably done by an in house library and you wouldn't be doing all te
 
-I've tried to show a few different things for testing: 
+I've tried to show a few different things for testing:
 - using quarkus test
 - using integration tests to run a whole lot of the app at once, and for spinning up kafka
 - using various standard 'enterprisey' libraries such as `assertj`, `equalsVerifier` and `mockito`.
@@ -305,9 +335,9 @@ mongosh -u admin -p some-pw
 Then use the following commands to inspect the objects that are stored in there.
 
 ```shell
-use loans 
+use loans
 db.auth("db-user", "some-password")
-show collections 
+show collections
 db.LoanOffer.find()
 ```
 
@@ -324,16 +354,7 @@ use when building.
 
 ### Kafka
 
-Exec into the kafka container:
 
-```shell
-docker exec -it setup_kafka_1 /bin/bash
-```
-
-```shell
-cd bin
-./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic loans-available --from-beginning
-```
 
 ## PLan?
 

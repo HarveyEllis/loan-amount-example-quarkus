@@ -1,10 +1,9 @@
 /* (C)2021 */
 package com.example.entity;
 
-import org.bson.types.ObjectId;
-
 import java.math.BigDecimal;
 import java.util.List;
+import org.bson.types.ObjectId;
 
 public class LoanOffer {
 
@@ -13,11 +12,8 @@ public class LoanOffer {
     public String rate;
     public String lenderId;
 
-    /**
-     * Default constructor required for some serialization
-     */
-    public LoanOffer() {
-    }
+    /** Default constructor required for some serialization */
+    public LoanOffer() {}
 
     public LoanOffer(String amount, String rate, String lenderId) {
         this.amount = amount;
@@ -41,10 +37,16 @@ public class LoanOffer {
 
     @Override
     public String toString() {
-        return "LoanOffer{" +
-                "amount='" + amount + '\'' +
-                ", rate='" + rate + '\'' +
-                ", lenderId='" + lenderId + '\'' +
-                '}';
+        return "LoanOffer{"
+                + "amount='"
+                + amount
+                + '\''
+                + ", rate='"
+                + rate
+                + '\''
+                + ", lenderId='"
+                + lenderId
+                + '\''
+                + '}';
     }
 }

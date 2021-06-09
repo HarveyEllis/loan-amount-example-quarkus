@@ -5,6 +5,16 @@ import com.example.entity.LoanAvailableEvent;
 import com.example.entity.LoanOfferCommand;
 import com.example.entity.LoanRequestCommand;
 import io.smallrye.reactive.messaging.annotations.Broadcast;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.inject.Inject;
+import javax.json.bind.Jsonb;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.jboss.resteasy.annotations.SseElementType;
@@ -12,33 +22,23 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.json.bind.Jsonb;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Produces("application/json")
 @Consumes("application/json")
 @Path("/")
 public class Handler {
 
-    @Inject
-    Jsonb jsonb;
+    @Inject Jsonb jsonb;
 
     Logger logger = LoggerFactory.getLogger(Handler.class);
-    @Inject
-    KafkaService kafkaService;
+    @Inject KafkaService kafkaService;
+
     @Inject
     @Channel("loans-available-updates")
     @Broadcast
     Publisher<LoanAvailableEvent> updater;
-    private Map<String, LoanAvailableEvent> loansAvailable = Collections.synchronizedMap(new TreeMap<>());
+
+    private Map<String, LoanAvailableEvent> loansAvailable =
+            Collections.synchronizedMap(new TreeMap<>());
     private AtomicInteger requestNumber = new AtomicInteger();
 
     @Incoming("loans-available-updates")
@@ -95,9 +95,6 @@ public class Handler {
     @Path("loans-available")
     public Response getAllLoansAvailable() {
         logger.info("Request received for loans-available");
-        return Response
-                .status(Response.Status.OK)
-                .entity(loansAvailable)
-                .build();
+        return Response.status(Response.Status.OK).entity(loansAvailable).build();
     }
 }

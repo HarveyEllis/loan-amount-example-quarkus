@@ -1,3 +1,4 @@
+/* (C)2021 */
 package com.example.entity;
 
 public class IncompatibleLoanTermsException extends Exception {

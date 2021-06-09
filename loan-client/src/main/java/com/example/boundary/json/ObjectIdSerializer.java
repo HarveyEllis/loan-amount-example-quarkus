@@ -1,10 +1,10 @@
+/* (C)2021 */
 package com.example.boundary.json;
-
-import org.bson.types.ObjectId;
 
 import javax.json.bind.serializer.JsonbSerializer;
 import javax.json.bind.serializer.SerializationContext;
 import javax.json.stream.JsonGenerator;
+import org.bson.types.ObjectId;
 
 public class ObjectIdSerializer implements JsonbSerializer<ObjectId> {
 

@@ -1,10 +1,8 @@
+/* (C)2021 */
 package com.example.boundary;
 
 import com.example.entity.LoanOfferRequest;
 import com.example.entity.LoanRequestRequest;
-import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-import org.reactivestreams.Publisher;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -12,6 +10,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.sse.InboundSseEvent;
+import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.reactivestreams.Publisher;
 
 @Path("/")
 @RegisterRestClient

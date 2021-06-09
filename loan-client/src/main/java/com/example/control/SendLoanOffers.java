@@ -1,23 +1,21 @@
+/* (C)2021 */
 package com.example.control;
 
 import com.example.boundary.LoanService;
 import com.example.entity.LoanOfferRequest;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import picocli.CommandLine;
-
-import javax.inject.Inject;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import picocli.CommandLine;
 
 @CommandLine.Command(name = "send-offers", description = "Send a loan to the service")
 class SendLoanOffers implements Runnable {
 
-    @Inject
-    @RestClient
-    LoanService loanService;
+    @Inject @RestClient LoanService loanService;
 
     @CommandLine.Option(
             names = {"-f", "--file"},
@@ -45,9 +43,10 @@ class SendLoanOffers implements Runnable {
             e.printStackTrace();
         }
 
-        offerRequests.forEach(loanOfferRequest -> {
-            System.out.println("Sending loan offer: \n" + loanOfferRequest.toString());
-            loanService.sendLoanOffer(loanOfferRequest);
-        });
+        offerRequests.forEach(
+                loanOfferRequest -> {
+                    System.out.println("Sending loan offer: \n" + loanOfferRequest.toString());
+                    loanService.sendLoanOffer(loanOfferRequest);
+                });
     }
 }

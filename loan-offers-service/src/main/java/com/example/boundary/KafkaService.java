@@ -6,21 +6,20 @@ import com.example.entity.LoanAvailableEvent;
 import com.example.entity.LoanOffer;
 import com.example.entity.LoanRequest;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import java.math.BigDecimal;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-import java.math.BigDecimal;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 @RegisterForReflection
@@ -46,7 +45,10 @@ public class KafkaService {
         LoanOffer loanOffer = jsonb.fromJson(message.getPayload().toString(), LoanOffer.class);
 
         // persist, acknowledge and return
-        return loanOfferRepository.persist(loanOffer).subscribeAsCompletionStage().thenRun(message::ack);
+        return loanOfferRepository
+                .persist(loanOffer)
+                .subscribeAsCompletionStage()
+                .thenRun(message::ack);
     }
 
     @Incoming("loan-requests-in")
@@ -56,7 +58,8 @@ public class KafkaService {
         BigDecimal amountRequested = new BigDecimal(loanRequest.amount);
         logger.info("LoanRequest received: {}", loanRequest);
 
-        return loanAvailabilityService.calculateLoanAvailability(amountRequested, loanRequest.borrowerId)
+        return loanAvailabilityService
+                .calculateLoanAvailability(amountRequested, loanRequest.borrowerId)
                 .invoke(this::sendLoanAvailable)
                 .subscribeAsCompletionStage()
                 .thenAccept(e -> logger.info(String.valueOf(e)))

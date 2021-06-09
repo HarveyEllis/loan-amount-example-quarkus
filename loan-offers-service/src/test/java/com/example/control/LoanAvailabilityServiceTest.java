@@ -1,12 +1,12 @@
+/* (C)2021 */
 package com.example.control;
 
 import com.example.entity.LoanOffer;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class LoanAvailabilityServiceTest {
 
@@ -26,8 +26,9 @@ class LoanAvailabilityServiceTest {
         loanOfferList.add(offer1);
         loanOfferList.add(offer2);
 
-        List<LoanAvailabilityService.LoanAndOfferPair> loans = LoanAvailabilityService.calculateListOfLoansToFulfilAmount(new BigDecimal("1500"), loanOfferList);
+        List<LoanAvailabilityService.LoanAndOfferPair> loans =
+                LoanAvailabilityService.calculateListOfLoansToFulfilAmount(
+                        new BigDecimal("1500"), loanOfferList);
         System.out.println(loans);
     }
-
 }

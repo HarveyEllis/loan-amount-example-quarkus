@@ -1,12 +1,12 @@
+/* (C)2021 */
 package com.example.entity;
 
 import ch.obermuhlner.math.big.DefaultBigDecimalMath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Loan {
     private static final Logger logger = LoggerFactory.getLogger(Loan.class);
@@ -19,7 +19,14 @@ public class Loan {
     private final int numberOfPaymentPeriods;
     private final int paymentsPerAnnum;
 
-    public Loan(BigDecimal monthlyRepayment, BigDecimal yearlyRate, BigDecimal principal, BigDecimal totalRepayment, BigDecimal periodicRate, int numberOfPaymentPeriods, int paymentPeriodsPerAnnum) {
+    public Loan(
+            BigDecimal monthlyRepayment,
+            BigDecimal yearlyRate,
+            BigDecimal principal,
+            BigDecimal totalRepayment,
+            BigDecimal periodicRate,
+            int numberOfPaymentPeriods,
+            int paymentPeriodsPerAnnum) {
         this.monthlyRepayment = monthlyRepayment;
         this.yearlyRate = yearlyRate;
         this.principal = principal;
@@ -35,30 +42,35 @@ public class Loan {
         BigDecimal firstLoanRateProduct = firstLoan.principal.multiply(firstLoan.yearlyRate);
         BigDecimal secondLoanRateProduct = secondLoan.principal.multiply(secondLoan.yearlyRate);
 
-        BigDecimal totalPrincipalRateProduct = DefaultBigDecimalMath.add(firstLoanRateProduct, secondLoanRateProduct);
+        BigDecimal totalPrincipalRateProduct =
+                DefaultBigDecimalMath.add(firstLoanRateProduct, secondLoanRateProduct);
         return DefaultBigDecimalMath.divide(totalPrincipalRateProduct, totalPrincipal);
     }
 
-    public static BigDecimal calculateAmountOwedPerMonth(BigDecimal periodicInterestRate, BigDecimal amount,
-                                                         int numberOfPaymentPeriods) {
+    public static BigDecimal calculateAmountOwedPerMonth(
+            BigDecimal periodicInterestRate, BigDecimal amount, int numberOfPaymentPeriods) {
 
         BigDecimal onePlusPeriodicInterestRateToThePowerOfNumberOfPayments =
                 one.add(periodicInterestRate).pow(numberOfPaymentPeriods);
 
         BigDecimal topOfAnnuityFormula =
-                onePlusPeriodicInterestRateToThePowerOfNumberOfPayments.multiply(periodicInterestRate);
+                onePlusPeriodicInterestRateToThePowerOfNumberOfPayments.multiply(
+                        periodicInterestRate);
 
-        BigDecimal bottomOfAnnuityFormula = onePlusPeriodicInterestRateToThePowerOfNumberOfPayments.subtract(one);
+        BigDecimal bottomOfAnnuityFormula =
+                onePlusPeriodicInterestRateToThePowerOfNumberOfPayments.subtract(one);
 
-        return DefaultBigDecimalMath.divide(topOfAnnuityFormula, bottomOfAnnuityFormula).multiply(amount);
+        return DefaultBigDecimalMath.divide(topOfAnnuityFormula, bottomOfAnnuityFormula)
+                .multiply(amount);
     }
 
-    public static BigDecimal calculateTotalRepayment(BigDecimal monthlyRepayment, int numberOfPayments) {
+    public static BigDecimal calculateTotalRepayment(
+            BigDecimal monthlyRepayment, int numberOfPayments) {
         return monthlyRepayment.multiply(new BigDecimal(numberOfPayments));
     }
 
-    public static BigDecimal convertAnnualInterestRateToPeriodicInterestRate(BigDecimal annualInterestRate,
-                                                                             int paymentsPerAnnum) {
+    public static BigDecimal convertAnnualInterestRateToPeriodicInterestRate(
+            BigDecimal annualInterestRate, int paymentsPerAnnum) {
         BigDecimal numberOfAnnualPayments = new BigDecimal(paymentsPerAnnum);
 
         BigDecimal addOne = annualInterestRate.add(one);
@@ -68,25 +80,29 @@ public class Loan {
 
     public static Loan reduce(List<Loan> loans) throws IncompatibleLoanTermsException {
         return loans.stream()
-                .reduce((loan, augend) -> {
-                    try {
-                        return loan.add(augend);
-                    } catch (IncompatibleLoanTermsException e) {
-                        logger.error(String.valueOf(e));
-                        return null;
-                    }
-                })
-                .orElseThrow(() -> new IncompatibleLoanTermsException("Loans could not be added due to incompatible " +
-                        "terms"));
+                .reduce(
+                        (loan, augend) -> {
+                            try {
+                                return loan.add(augend);
+                            } catch (IncompatibleLoanTermsException e) {
+                                logger.error(String.valueOf(e));
+                                return null;
+                            }
+                        })
+                .orElseThrow(
+                        () ->
+                                new IncompatibleLoanTermsException(
+                                        "Loans could not be added due to incompatible " + "terms"));
     }
 
     public Loan add(Loan augend) throws IncompatibleLoanTermsException {
         if (this.numberOfPaymentPeriods != augend.numberOfPaymentPeriods) {
-            throw new IncompatibleLoanTermsException("The total number of payment periods is not the same for the two" +
-                    " loans");
+            throw new IncompatibleLoanTermsException(
+                    "The total number of payment periods is not the same for the two" + " loans");
         } else if (this.paymentsPerAnnum != augend.paymentsPerAnnum) {
-            throw new IncompatibleLoanTermsException("The number of payment periods per annum is not the same for the" +
-                    " two loans");
+            throw new IncompatibleLoanTermsException(
+                    "The number of payment periods per annum is not the same for the"
+                            + " two loans");
         }
 
         return new Loan.LoanBuilder()
@@ -160,15 +176,22 @@ public class Loan {
             Objects.requireNonNull(yearlyRate);
             Objects.requireNonNull(principal);
 
-            periodicRate = convertAnnualInterestRateToPeriodicInterestRate(yearlyRate,
-                    paymentsPerAnnum);
+            periodicRate =
+                    convertAnnualInterestRateToPeriodicInterestRate(yearlyRate, paymentsPerAnnum);
 
-            monthlyRepayment = calculateAmountOwedPerMonth(periodicRate, principal,
-                    numberOfPayments);
+            monthlyRepayment =
+                    calculateAmountOwedPerMonth(periodicRate, principal, numberOfPayments);
 
             totalRepayment = calculateTotalRepayment(monthlyRepayment, numberOfPayments);
 
-            return new Loan(monthlyRepayment, yearlyRate, principal, totalRepayment, periodicRate, numberOfPayments, paymentsPerAnnum);
+            return new Loan(
+                    monthlyRepayment,
+                    yearlyRate,
+                    principal,
+                    totalRepayment,
+                    periodicRate,
+                    numberOfPayments,
+                    paymentsPerAnnum);
         }
     }
 }

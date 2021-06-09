@@ -1,3 +1,4 @@
+/* (C)2021 */
 package com.example.entity;
 
 public class LoanOfferRequest {
@@ -7,10 +8,16 @@ public class LoanOfferRequest {
 
     @Override
     public String toString() {
-        return "LoanOfferRequest{" +
-                "amount='" + amount + '\'' +
-                ", rate='" + rate + '\'' +
-                ", lenderId='" + lenderId + '\'' +
-                '}';
+        return "LoanOfferRequest{"
+                + "amount='"
+                + amount
+                + '\''
+                + ", rate='"
+                + rate
+                + '\''
+                + ", lenderId='"
+                + lenderId
+                + '\''
+                + '}';
     }
 }

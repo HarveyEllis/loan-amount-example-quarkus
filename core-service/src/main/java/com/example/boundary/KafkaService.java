@@ -6,14 +6,13 @@ import com.example.entity.LoanOfferCommand;
 import com.example.entity.LoanRequestCommand;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.smallrye.reactive.messaging.annotations.Broadcast;
-import org.eclipse.microprofile.reactive.messaging.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.concurrent.CompletableFuture;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
-import java.util.concurrent.CompletableFuture;
+import org.eclipse.microprofile.reactive.messaging.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 @RegisterForReflection
@@ -21,8 +20,7 @@ public class KafkaService {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaService.class);
 
-    @Inject
-    Jsonb jsonb;
+    @Inject Jsonb jsonb;
 
     @Inject
     @Channel("loan-offers-in")
@@ -52,7 +50,8 @@ public class KafkaService {
     @Broadcast
     @Acknowledgment(Acknowledgment.Strategy.PRE_PROCESSING)
     public LoanAvailableEvent onLoanRequest(final Message message) {
-        LoanAvailableEvent loanAvailableEvent = jsonb.fromJson(message.getPayload().toString(), LoanAvailableEvent.class);
+        LoanAvailableEvent loanAvailableEvent =
+                jsonb.fromJson(message.getPayload().toString(), LoanAvailableEvent.class);
         logger.info("LoanAvailableEvent received: {}", loanAvailableEvent.toString());
         return loanAvailableEvent;
     }

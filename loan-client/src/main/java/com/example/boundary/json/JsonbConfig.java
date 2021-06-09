@@ -1,12 +1,12 @@
+/* (C)2021 */
 package com.example.boundary.json;
 
 import io.quarkus.jsonb.JsonbConfigCustomizer;
-
 import javax.enterprise.context.ApplicationScoped;
 
 /**
- * This class is so that the format that gets sent to kafka includes nulls - i.e. the json object is the same in all
- * instances!
+ * This class is so that the format that gets sent to kafka includes nulls - i.e. the json object is
+ * the same in all instances!
  */
 @ApplicationScoped
 public class JsonbConfig implements JsonbConfigCustomizer {
