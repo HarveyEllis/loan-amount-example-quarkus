@@ -8,7 +8,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.util.Collections;
 import java.util.Map;
 
-public class MongoITResource implements QuarkusTestResourceLifecycleManager {
+public class MongoTestResource implements QuarkusTestResourceLifecycleManager {
 
     static final MongoDBContainer MONGO = new MongoDBContainer(DockerImageName.parse("mongo:4.0.10")).withExposedPorts(27017);
 

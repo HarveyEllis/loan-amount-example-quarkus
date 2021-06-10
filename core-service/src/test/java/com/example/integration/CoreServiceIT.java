@@ -17,10 +17,10 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
-@QuarkusTestResource(value = KafkaTestResourceIT.class, restrictToAnnotatedClass = true)
-@QuarkusTestResource(value = MongoITResource.class, restrictToAnnotatedClass = true)
+@QuarkusTestResource(value = KafkaTestResource.class, restrictToAnnotatedClass = true)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 @TestProfile(IntegrationProfile.class) // run com.example.integration tests in prod mode
-public class CoreServiceIT extends KafkaInitIT {
+public class CoreServiceIT extends KafkaIT {
 
     @Test
     public void givenASequenceOfLoanOffersAndRequestsAllEndInDatabaseAndInLoanAvailableEvents() {

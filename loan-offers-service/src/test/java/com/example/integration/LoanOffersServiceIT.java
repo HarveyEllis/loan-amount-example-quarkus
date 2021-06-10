@@ -11,10 +11,10 @@ import java.util.UUID;
 import static com.example.integration.TestUtils.*;
 
 @QuarkusTest
-@QuarkusTestResource(value = KafkaTestResourceIT.class, restrictToAnnotatedClass = true)
-@QuarkusTestResource(value = MongoITResource.class, restrictToAnnotatedClass = true)
+@QuarkusTestResource(value = KafkaTestResource.class, restrictToAnnotatedClass = true)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 @TestProfile(IntegrationProfile.class) // run com.example.integration tests in prod mode
-public class LoanOffersServiceIT extends KafkaInitIT {
+public class LoanOffersServiceIT extends KafkaIT {
 
     @Test
     public void givenASequenceOfLoanOffersAndRequestsAllEndInDatabaseAndInLoanAvailableEvents() {

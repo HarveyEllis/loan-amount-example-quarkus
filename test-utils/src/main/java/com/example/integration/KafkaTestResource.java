@@ -7,7 +7,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.util.Collections;
 import java.util.Map;
 
-public class KafkaTestResourceIT implements QuarkusTestResourceLifecycleManager {
+public class KafkaTestResource implements QuarkusTestResourceLifecycleManager {
 
     static final DockerImageName KAFKA_IMAGE = DockerImageName.parse("confluentinc/cp-kafka:5.4.3");
 

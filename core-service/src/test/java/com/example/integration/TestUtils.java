@@ -32,17 +32,17 @@ public class TestUtils {
 
     public static void sendLoanOfferCommand(String id, String rate, String amount) {
         LoanOfferCommand loanOfferCommand = new LoanOfferCommand(amount, rate, id);
-        KafkaInitIT.producerMap.get("loan-offers-in").send(new ProducerRecord<>("loan-offers-in", jsonb.toJson(loanOfferCommand)));
+        KafkaIT.producerMap.get("loan-offers-in").send(new ProducerRecord<>("loan-offers-in", jsonb.toJson(loanOfferCommand)));
     }
 
     public static void sendLoanRequestCommand(String id, String amount) {
         LoanRequestCommand loanRequestCommand = new LoanRequestCommand(amount, id);
-        KafkaInitIT.producerMap.get("loan-requests-in").send(new ProducerRecord<>("loan-requests-in", jsonb.toJson(loanRequestCommand)));
+        KafkaIT.producerMap.get("loan-requests-in").send(new ProducerRecord<>("loan-requests-in", jsonb.toJson(loanRequestCommand)));
     }
 
     public static void assertLoanOfferMessageInKafka(LoanOfferCommand expected, int expectedNumberOfKafkaMessages) {
         // Get the appropriate consumer, point to the first message, and pull all messages
-        final KafkaConsumer loanOffersConsumer = KafkaInitIT.consumerMap.get("loan-offers-in");
+        final KafkaConsumer loanOffersConsumer = KafkaIT.consumerMap.get("loan-offers-in");
         loanOffersConsumer.seekToBeginning(new ArrayList<TopicPartition>());
 
         Awaitility.await().atMost(Duration.ofMillis(10000)).untilAsserted(() -> {
@@ -60,7 +60,7 @@ public class TestUtils {
 
     public static void assertLoanRequestMessageInKafka(LoanRequestCommand expected, int expectedNumberOfKafkaMessages) {
         // Get the appropriate consumer, point to the first message, and pull all messages
-        final KafkaConsumer loanRequestsConsumer = KafkaInitIT.consumerMap.get("loan-requests-in");
+        final KafkaConsumer loanRequestsConsumer = KafkaIT.consumerMap.get("loan-requests-in");
         loanRequestsConsumer.seekToBeginning(new ArrayList<TopicPartition>());
 
         Awaitility.await().atMost(Duration.ofMillis(10000)).untilAsserted(() -> {

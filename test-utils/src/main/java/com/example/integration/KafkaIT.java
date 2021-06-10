@@ -4,22 +4,16 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.assertj.core.api.Fail;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import java.time.Duration;
 import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 
 /**
@@ -27,7 +21,7 @@ import static org.awaitility.Awaitility.await;
  * again in our tests.
  * See this class: https://github.com/jeremyrdavis/quarkus-cafe-demo/blob/master/quarkus-cafe-test-utils/src/main/java/com/redhat/quarkus/cafe/infrastructure/KafkaIT.java
  */
-public abstract class KafkaInitIT {
+public abstract class KafkaIT {
 
     protected static Collection<String> kafkaTopics = Arrays.asList("loan-offers-in", "loan-requests-in", "loans-available");
     protected static Map<String, KafkaConsumer> consumerMap;
@@ -92,7 +86,6 @@ public abstract class KafkaInitIT {
         setUpProducer();
         setUpConsumer();
 
-//        waitForKafkaTopics();
         // wait for startup
         try {
             Thread.sleep(3000);
@@ -104,20 +97,6 @@ public abstract class KafkaInitIT {
     @AfterEach
     public void afterEach() {
         adminClient.deleteTopics(kafkaTopics);
-    }
-
-    private void waitForKafkaTopics() {
-        producerMap.forEach((topic, kafkaProducer) -> {
-            ProducerRecord producerRecord = new ProducerRecord(topic, "anykey", "anyval");
-            kafkaProducer.send(producerRecord);
-        });
-
-        consumerMap.forEach((topic, kafkaConsumer) -> {
-            await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> {
-                ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
-                records.records(topic).forEach(elem -> assertThat(elem.value()).isEqualTo("anyval"));
-            });
-        });
     }
 
     private void setUpAdminClient() {

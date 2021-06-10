@@ -97,4 +97,28 @@
             <artifactId>mongodb</artifactId>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jboss.jandex</groupId>
+                <artifactId>jandex-maven-plugin</artifactId>
+                <version>1.0.7</version>
+                <executions>
+                    <execution>
+                        <id>make-index</id>
+                        <goals>
+                            <goal>jandex</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+<!--            <plugin>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <version>${compiler-plugin.version}</version>-->
+<!--                <configuration>-->
+<!--                    <parameters>${maven.compiler.parameters}</parameters>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+        </plugins>
+    </build>
 </project>

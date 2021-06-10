@@ -23,8 +23,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.integration.KafkaInitIT.consumerMap;
-import static com.example.integration.KafkaInitIT.producerMap;
+import static com.example.integration.KafkaIT.consumerMap;
+import static com.example.integration.KafkaIT.producerMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
