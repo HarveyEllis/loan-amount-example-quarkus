@@ -4,7 +4,6 @@ package com.example.entity;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-
 import org.bson.types.ObjectId;
 
 public class LoanOffer {
@@ -42,7 +41,10 @@ public class LoanOffer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LoanOffer loanOffer = (LoanOffer) o;
-        return Objects.equals(id, loanOffer.id) && Objects.equals(amount, loanOffer.amount) && Objects.equals(rate, loanOffer.rate) && Objects.equals(lenderId, loanOffer.lenderId);
+        return Objects.equals(id, loanOffer.id)
+                && Objects.equals(amount, loanOffer.amount)
+                && Objects.equals(rate, loanOffer.rate)
+                && Objects.equals(lenderId, loanOffer.lenderId);
     }
 
     @Override

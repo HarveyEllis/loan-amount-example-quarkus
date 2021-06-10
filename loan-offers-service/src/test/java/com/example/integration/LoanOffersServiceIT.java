@@ -1,14 +1,14 @@
+/* (C)2021 */
 package com.example.integration;
+
+import static com.example.integration.TestUtils.*;
 
 import com.example.entity.LoanAvailableEvent;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
-import org.junit.jupiter.api.Test;
-
 import java.util.UUID;
-
-import static com.example.integration.TestUtils.*;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 @QuarkusTestResource(value = KafkaTestResource.class, restrictToAnnotatedClass = true)
@@ -52,7 +52,7 @@ public class LoanOffersServiceIT extends KafkaIT {
         // Then lets assert the message has been seen in kafka
         assertLoanAvailableMessageInKafka(expectedFalseEvent, 1);
 
-//         send another loan offer command
+        //         send another loan offer command
         sendLoanOfferCommand(loanOfferId2, rate2, loanOfferAmount2);
 
         // check the database again
@@ -63,6 +63,5 @@ public class LoanOffersServiceIT extends KafkaIT {
 
         // Then lets assert the second message has been seen in kafka
         assertLoanAvailableMessageInKafka(expectedTrueEvent, 2);
-
     }
 }

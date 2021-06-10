@@ -1,11 +1,11 @@
+/* (C)2021 */
 package com.example.integration;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.utility.DockerImageName;
-
 import java.util.Collections;
 import java.util.Map;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 
 public class KafkaTestResource implements QuarkusTestResourceLifecycleManager {
 

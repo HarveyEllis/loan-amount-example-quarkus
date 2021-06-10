@@ -200,24 +200,44 @@ public class Loan {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Loan loan = (Loan) o;
-        return numberOfPaymentPeriods == loan.numberOfPaymentPeriods && paymentsPerAnnum == loan.paymentsPerAnnum && Objects.equals(monthlyRepayment, loan.monthlyRepayment) && Objects.equals(yearlyRate, loan.yearlyRate) && Objects.equals(principal, loan.principal) && Objects.equals(totalRepayment, loan.totalRepayment) && Objects.equals(periodicRate, loan.periodicRate);
+        return numberOfPaymentPeriods == loan.numberOfPaymentPeriods
+                && paymentsPerAnnum == loan.paymentsPerAnnum
+                && Objects.equals(monthlyRepayment, loan.monthlyRepayment)
+                && Objects.equals(yearlyRate, loan.yearlyRate)
+                && Objects.equals(principal, loan.principal)
+                && Objects.equals(totalRepayment, loan.totalRepayment)
+                && Objects.equals(periodicRate, loan.periodicRate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(monthlyRepayment, yearlyRate, principal, totalRepayment, periodicRate, numberOfPaymentPeriods, paymentsPerAnnum);
+        return Objects.hash(
+                monthlyRepayment,
+                yearlyRate,
+                principal,
+                totalRepayment,
+                periodicRate,
+                numberOfPaymentPeriods,
+                paymentsPerAnnum);
     }
 
     @Override
     public String toString() {
-        return "Loan{" +
-                "monthlyRepayment=" + monthlyRepayment +
-                ", yearlyRate=" + yearlyRate +
-                ", principal=" + principal +
-                ", totalRepayment=" + totalRepayment +
-                ", periodicRate=" + periodicRate +
-                ", numberOfPaymentPeriods=" + numberOfPaymentPeriods +
-                ", paymentsPerAnnum=" + paymentsPerAnnum +
-                '}';
+        return "Loan{"
+                + "monthlyRepayment="
+                + monthlyRepayment
+                + ", yearlyRate="
+                + yearlyRate
+                + ", principal="
+                + principal
+                + ", totalRepayment="
+                + totalRepayment
+                + ", periodicRate="
+                + periodicRate
+                + ", numberOfPaymentPeriods="
+                + numberOfPaymentPeriods
+                + ", paymentsPerAnnum="
+                + paymentsPerAnnum
+                + '}';
     }
 }

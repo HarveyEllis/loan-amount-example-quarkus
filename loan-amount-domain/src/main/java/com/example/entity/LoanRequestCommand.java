@@ -2,7 +2,6 @@
 package com.example.entity;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-
 import java.util.Objects;
 
 @RegisterForReflection
@@ -22,10 +21,14 @@ public class LoanRequestCommand {
 
     @Override
     public String toString() {
-        return "LoanRequestCommand{" +
-                "amount='" + amount + '\'' +
-                ", borrowerId='" + borrowerId + '\'' +
-                '}';
+        return "LoanRequestCommand{"
+                + "amount='"
+                + amount
+                + '\''
+                + ", borrowerId='"
+                + borrowerId
+                + '\''
+                + '}';
     }
 
     @Override

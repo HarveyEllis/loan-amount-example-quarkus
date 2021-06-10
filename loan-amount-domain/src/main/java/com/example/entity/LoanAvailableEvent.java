@@ -41,12 +41,25 @@ public class LoanAvailableEvent {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LoanAvailableEvent that = (LoanAvailableEvent) o;
-        return available == that.available && Objects.equals(requestedAmount, that.requestedAmount) && Objects.equals(annualInterestRate, that.annualInterestRate) && Objects.equals(monthlyRepayment, that.monthlyRepayment) && Objects.equals(totalRepayment, that.totalRepayment) && Objects.equals(requesterId, that.requesterId) && Objects.equals(loanOffers, that.loanOffers);
+        return available == that.available
+                && Objects.equals(requestedAmount, that.requestedAmount)
+                && Objects.equals(annualInterestRate, that.annualInterestRate)
+                && Objects.equals(monthlyRepayment, that.monthlyRepayment)
+                && Objects.equals(totalRepayment, that.totalRepayment)
+                && Objects.equals(requesterId, that.requesterId)
+                && Objects.equals(loanOffers, that.loanOffers);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(available, requestedAmount, annualInterestRate, monthlyRepayment, totalRepayment, requesterId, loanOffers);
+        return Objects.hash(
+                available,
+                requestedAmount,
+                annualInterestRate,
+                monthlyRepayment,
+                totalRepayment,
+                requesterId,
+                loanOffers);
     }
 
     @Override

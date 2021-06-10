@@ -1,12 +1,22 @@
+/* (C)2021 */
 package com.example.boundary;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import com.example.entity.LoanOffer;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
-import io.quarkus.panache.common.Sort;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,21 +24,9 @@ import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 @QuarkusTest
 class LoanOfferRepositoryTest {
-    @InjectMock
-    LoanOfferRepository loanOfferRepository;
+    @InjectMock LoanOfferRepository loanOfferRepository;
 
     @ConfigProperty(name = "mongo.pagesize")
     int pageSize;
@@ -47,7 +45,8 @@ class LoanOfferRepositoryTest {
         when(mockOffers.page(eq(2), eq(pageSize))).thenReturn(mockPage2);
     }
 
-    /** A lot of mocking required in this method because we do paging on the repository
+    /**
+     * A lot of mocking required in this method because we do paging on the repository
      *
      * @throws Throwable
      */
@@ -55,20 +54,24 @@ class LoanOfferRepositoryTest {
     public void givenLoanOffersForValueFitInSinglePageThenTwoCallsToDbMade() {
         BigDecimal amount = new BigDecimal(2000);
         List<LoanOffer> listOfLoans = getListOfLoanOffers("2000", "0.07", "test", pageSize);
-        Uni<List<LoanOffer>> fakeUnilistOfLoans = Uni
-                .createFrom()
-                .item(listOfLoans);
+        Uni<List<LoanOffer>> fakeUnilistOfLoans = Uni.createFrom().item(listOfLoans);
         Uni<List<LoanOffer>> emptyUniListOfLoans = Uni.createFrom().item(Collections.emptyList());
 
         when(mockPage0.list()).thenReturn(fakeUnilistOfLoans);
         when(mockPage1.list()).thenReturn(emptyUniListOfLoans);
         when(loanOfferRepository.findAll(any())).thenReturn(mockOffers);
 
-        when(loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount)).thenCallRealMethod();
-        Uni<List<LoanOffer>> listUniOfLoanOffers = loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount);
+        when(loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount))
+                .thenCallRealMethod();
+        Uni<List<LoanOffer>> listUniOfLoanOffers =
+                loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount);
 
         // get the result
-        List<LoanOffer> listOfLoanOffers = listUniOfLoanOffers.subscribe().withSubscriber(UniAssertSubscriber.create()).getItem();
+        List<LoanOffer> listOfLoanOffers =
+                listUniOfLoanOffers
+                        .subscribe()
+                        .withSubscriber(UniAssertSubscriber.create())
+                        .getItem();
         List<LoanOffer> expectedListOfLoans = listOfLoans;
         expectedListOfLoans.addAll(listOfLoans);
         assertThat(listOfLoanOffers).contains(expectedListOfLoans.toArray(new LoanOffer[2]));
@@ -85,9 +88,7 @@ class LoanOfferRepositoryTest {
     public void givenLoanOffersForValueFitInTwoPagesThenTwoCallsToDbMade() {
         BigDecimal amount = new BigDecimal(8000);
         List<LoanOffer> listOfLoans = getListOfLoanOffers("2000", "0.07", "test", pageSize);
-        Uni<List<LoanOffer>> fakeUnilistOfLoans = Uni
-                .createFrom()
-                .item(listOfLoans);
+        Uni<List<LoanOffer>> fakeUnilistOfLoans = Uni.createFrom().item(listOfLoans);
         Uni<List<LoanOffer>> emptyUniListOfLoans = Uni.createFrom().item(Collections.emptyList());
 
         when(mockPage0.list()).thenReturn(fakeUnilistOfLoans);
@@ -95,11 +96,17 @@ class LoanOfferRepositoryTest {
         when(mockPage2.list()).thenReturn(emptyUniListOfLoans);
         when(loanOfferRepository.findAll(any())).thenReturn(mockOffers);
 
-        when(loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount)).thenCallRealMethod();
-        Uni<List<LoanOffer>> listUniOfLoanOffers = loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount);
+        when(loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount))
+                .thenCallRealMethod();
+        Uni<List<LoanOffer>> listUniOfLoanOffers =
+                loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount);
 
         // get the result
-        List<LoanOffer> listOfLoanOffers = listUniOfLoanOffers.subscribe().withSubscriber(UniAssertSubscriber.create()).getItem();
+        List<LoanOffer> listOfLoanOffers =
+                listUniOfLoanOffers
+                        .subscribe()
+                        .withSubscriber(UniAssertSubscriber.create())
+                        .getItem();
         List<LoanOffer> expectedListOfLoans = listOfLoans;
         expectedListOfLoans.addAll(listOfLoans);
         assertThat(listOfLoanOffers).contains(expectedListOfLoans.toArray(new LoanOffer[4]));
@@ -117,19 +124,23 @@ class LoanOfferRepositoryTest {
     public void givenNoLoanOffersCanMatchThenResultShouldBeNull() {
         BigDecimal amount = new BigDecimal(10000);
         List<LoanOffer> listOfLoans = getListOfLoanOffers("2000", "0.07", "test", pageSize);
-        Uni<List<LoanOffer>> fakeUnilistOfLoans = Uni
-                .createFrom()
-                .item(listOfLoans);
+        Uni<List<LoanOffer>> fakeUnilistOfLoans = Uni.createFrom().item(listOfLoans);
         Uni<List<LoanOffer>> emptyUniListOfLoans = Uni.createFrom().item(Collections.emptyList());
 
         when(mockPage0.list()).thenReturn(fakeUnilistOfLoans);
         when(mockPage1.list()).thenReturn(emptyUniListOfLoans);
         when(loanOfferRepository.findAll(any())).thenReturn(mockOffers);
 
-        when(loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount)).thenCallRealMethod();
-        Uni<List<LoanOffer>> listUniOfLoanOffers = loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount);
+        when(loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount))
+                .thenCallRealMethod();
+        Uni<List<LoanOffer>> listUniOfLoanOffers =
+                loanOfferRepository.retrieveLoanOffersThatSumToAtLeastValue(amount);
 
-        List<LoanOffer> listOfLoanOffers = listUniOfLoanOffers.subscribe().withSubscriber(UniAssertSubscriber.create()).getItem();
+        List<LoanOffer> listOfLoanOffers =
+                listUniOfLoanOffers
+                        .subscribe()
+                        .withSubscriber(UniAssertSubscriber.create())
+                        .getItem();
         assertThat(listOfLoanOffers).isNullOrEmpty();
 
         // verify and assert that methods have been called with certain args
@@ -140,10 +151,13 @@ class LoanOfferRepositoryTest {
         assertThat(allPageIndexValues.get(1)).isEqualTo(1);
     }
 
-    private List<LoanOffer> getListOfLoanOffers(String amount, String rate, String lenderIdPrefix, int numberOfLoanOffers) {
+    private List<LoanOffer> getListOfLoanOffers(
+            String amount, String rate, String lenderIdPrefix, int numberOfLoanOffers) {
         AtomicInteger idPostfix = new AtomicInteger(0);
-        return Stream.generate(() ->
-                new LoanOffer(amount, rate, lenderIdPrefix + idPostfix.getAndIncrement()))
+        return Stream.generate(
+                        () ->
+                                new LoanOffer(
+                                        amount, rate, lenderIdPrefix + idPostfix.getAndIncrement()))
                 .limit(numberOfLoanOffers)
                 .collect(Collectors.toList());
     }

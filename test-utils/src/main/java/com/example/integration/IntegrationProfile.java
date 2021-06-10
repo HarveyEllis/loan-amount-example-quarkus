@@ -1,3 +1,4 @@
+/* (C)2021 */
 package com.example.integration;
 
 import io.quarkus.test.junit.QuarkusTestProfile;

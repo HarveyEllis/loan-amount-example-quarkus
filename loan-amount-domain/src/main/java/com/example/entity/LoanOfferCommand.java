@@ -2,7 +2,6 @@
 package com.example.entity;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-
 import java.util.Objects;
 
 @RegisterForReflection
@@ -27,7 +26,9 @@ public class LoanOfferCommand {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LoanOfferCommand that = (LoanOfferCommand) o;
-        return Objects.equals(amount, that.amount) && Objects.equals(rate, that.rate) && Objects.equals(lenderId, that.lenderId);
+        return Objects.equals(amount, that.amount)
+                && Objects.equals(rate, that.rate)
+                && Objects.equals(lenderId, that.lenderId);
     }
 
     @Override
@@ -37,10 +38,16 @@ public class LoanOfferCommand {
 
     @Override
     public String toString() {
-        return "LoanOfferCommand{" +
-                "amount='" + amount + '\'' +
-                ", rate='" + rate + '\'' +
-                ", lenderId='" + lenderId + '\'' +
-                '}';
+        return "LoanOfferCommand{"
+                + "amount='"
+                + amount
+                + '\''
+                + ", rate='"
+                + rate
+                + '\''
+                + ", lenderId='"
+                + lenderId
+                + '\''
+                + '}';
     }
 }

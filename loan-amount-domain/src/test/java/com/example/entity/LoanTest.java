@@ -1,20 +1,18 @@
 /* (C)2021 */
 package com.example.entity;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class LoanTest {
 
@@ -199,9 +197,9 @@ class LoanTest {
     void givenAnAnnualInterestRateThenPeriodicInterestRateCalculatedCorrectly(
             BigDecimal annualRate, int paymentsPerAnnum, BigDecimal expectedMonthlyRate) {
         assertThat(
-                Loan.convertAnnualInterestRateToPeriodicInterestRate(
-                        annualRate, paymentsPerAnnum)
-                        .round(fourSf))
+                        Loan.convertAnnualInterestRateToPeriodicInterestRate(
+                                        annualRate, paymentsPerAnnum)
+                                .round(fourSf))
                 .isEqualTo(expectedMonthlyRate);
     }
 
@@ -212,8 +210,8 @@ class LoanTest {
             int numberOfPaymentPeriods,
             BigDecimal expectedTotalRepayment) {
         assertThat(
-                Loan.calculateTotalRepayment(monthlyRepayment, numberOfPaymentPeriods)
-                        .setScale(2, RoundingMode.HALF_UP))
+                        Loan.calculateTotalRepayment(monthlyRepayment, numberOfPaymentPeriods)
+                                .setScale(2, RoundingMode.HALF_UP))
                 .isEqualTo(expectedTotalRepayment);
     }
 
