@@ -2,6 +2,7 @@
 package com.example.entity;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This is an event that is triggered when a loan availability calculation has been successfully
@@ -33,6 +34,19 @@ public class LoanAvailableEvent {
         this.totalRepayment = totalRepayment;
         this.requesterId = requesterId;
         this.loanOffers = loanOffers;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LoanAvailableEvent that = (LoanAvailableEvent) o;
+        return available == that.available && Objects.equals(requestedAmount, that.requestedAmount) && Objects.equals(annualInterestRate, that.annualInterestRate) && Objects.equals(monthlyRepayment, that.monthlyRepayment) && Objects.equals(totalRepayment, that.totalRepayment) && Objects.equals(requesterId, that.requesterId) && Objects.equals(loanOffers, that.loanOffers);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(available, requestedAmount, annualInterestRate, monthlyRepayment, totalRepayment, requesterId, loanOffers);
     }
 
     @Override

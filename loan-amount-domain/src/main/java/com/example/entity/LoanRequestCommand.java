@@ -3,6 +3,8 @@ package com.example.entity;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import java.util.Objects;
+
 @RegisterForReflection
 public class LoanRequestCommand {
 
@@ -24,5 +26,18 @@ public class LoanRequestCommand {
                 "amount='" + amount + '\'' +
                 ", borrowerId='" + borrowerId + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LoanRequestCommand that = (LoanRequestCommand) o;
+        return Objects.equals(amount, that.amount) && Objects.equals(borrowerId, that.borrowerId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(amount, borrowerId);
     }
 }

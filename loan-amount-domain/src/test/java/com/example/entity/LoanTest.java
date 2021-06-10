@@ -2,6 +2,7 @@
 package com.example.entity;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -218,6 +219,6 @@ class LoanTest {
 
     @Test
     void givenTheClassItConstructsAndEqualsWorksCorrectly() {
-        EqualsVerifier.simple().forClass(LoanRequestCommand.class).verify();
+        EqualsVerifier.simple().forClass(Loan.class).verify();
     }
 }
