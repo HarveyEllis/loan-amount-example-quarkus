@@ -53,12 +53,16 @@ There is also a set of three docker containers, 2 for running kafka (kafka and z
 ### `loan-client`
 
 - Contains a `loan-client` that can be used to send requests to the services. See
-the [Operation of loan client CLI](#Operation-of-loan-client-CLI) section below for more information on how to use
-this.
+  the [Operation of loan client CLI](#Operation-of-loan-client-CLI) section below for more information on how to use
+  this.
 
 ### `loan-amount-domain`
 
 - Contains models that would otherwise be duplicated across the other modules
+
+### `test-utils`
+
+- Some utilities used for starting kafka and getting producers and consumers for it for use in tests
 
 ## Developing
 
@@ -67,7 +71,7 @@ this.
 There are a number of requirements for developing the project. These include:
 
 - java 11+ (used adoptopenkjdk 11.0.11+9, note that there is an error with the spotless plugin when using java
-16, [see here](https://github.com/diffplug/spotless/issues/834))
+  16, [see here](https://github.com/diffplug/spotless/issues/834))
 - docker with docker-compose (used docker-desktop 3.3.3)
 - maven 3+ (optional - can use warpper instead, used 3.8.3)
 - mongosh (optional - only for validating operation within mongo database, used 0.12.1)
@@ -80,11 +84,30 @@ The project can be built using the following command from the root of the projec
 ./mvnw clean install
 ```
 
-This will build the project and run all tests.
+This will build the project and run all unit tests.
 
 > NB: Please be aware that for the services in this project the jar is not an uber-jar (except for the `loan-client`)
 > and so is not runnable by itself, and instead must be run using the quarkus run jar.
->
+
+Jacoco coverage reports are available in each of the modules that have tests, in the `target/jacoco-report` folder.
+
+#### Integration tests
+
+You can also run the integration tests during the build using:
+
+```shell
+./mvnw clean install -Pintegration
+```
+
+Or run afterwards separately:
+
+```shell
+./mvnw verify -Pintegration
+```
+
+> NB: The integration tests use testcontainers which 1) take a while to pull from dockerhub,
+> and 2) cause a problem if you have to use an internal mirror. Plus the fact they take 40s each means they are too slow
+> to be in every build
 
 #### Linting
 
@@ -310,9 +333,8 @@ There a number of points to be made on the architecture and design of this proje
 - For integration tests I've tried to show some of quarkus' functionality with quarkus test and test resources, as well
   as using test containers. This allows spinning up of each module
 - There is an additional type of testing, which might be termed "acceptance" testing, "end-user" testing, or "system"
-  testing. TThis kind of test would use something like rest-assured, or cucumber. This type of testing has not been
-  done, though it might be argued that it is partially done by the fact that the `loan-client` exists.
-- Coverage is probably something that should be added using jacoco too.
+  testing. This kind of test would use something like rest-assured, or cucumber. This type of testing has not been done,
+  though it might be argued that it is partially done by the fact that the `loan-client` exists.
 
 ## Additional future directions
 
