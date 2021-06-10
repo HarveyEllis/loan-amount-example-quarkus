@@ -1,7 +1,6 @@
 package com.example.integration;
 
 import com.example.entity.LoanAvailableEvent;
-import com.example.entity.LoanOffer;
 import com.example.entity.LoanOfferCommand;
 import com.example.entity.LoanRequestCommand;
 import com.mongodb.client.MongoClient;
@@ -71,10 +70,9 @@ public class TestUtils {
             for (ConsumerRecord<String, String> record : loanAvailableRecords) {
                 loanAvailableEvents.add(jsonb.fromJson(record.value(), LoanAvailableEvent.class));
             }
-            boolean match = false;
             assertThat(loanAvailableEvents)
-                .usingElementComparatorIgnoringFields("monthlyRepayment", "totalRepayment", "loanOffers", "annualInterestRate")
-                .contains(expected);
+                    .usingElementComparatorIgnoringFields("monthlyRepayment", "totalRepayment", "loanOffers", "annualInterestRate")
+                    .contains(expected);
         });
     }
 }

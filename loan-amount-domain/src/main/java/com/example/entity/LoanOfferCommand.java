@@ -19,4 +19,13 @@ public class LoanOfferCommand {
         this.rate = rate;
         this.lenderId = lenderId;
     }
+
+    @Override
+    public String toString() {
+        return "LoanOfferCommand{" +
+                "amount='" + amount + '\'' +
+                ", rate='" + rate + '\'' +
+                ", lenderId='" + lenderId + '\'' +
+                '}';
+    }
 }

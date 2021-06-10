@@ -1,8 +1,6 @@
 /* (C)2021 */
 package com.example.boundary;
 
-import static com.example.entity.LoanOffer.sumLoanOffers;
-
 import com.example.entity.LoanOffer;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoRepository;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
@@ -10,14 +8,18 @@ import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.example.entity.LoanOffer.sumLoanOffers;
 
 /**
  * Use a repository pattern so that we don't burden the LoanOffer POJO class with concerns of saving
@@ -41,7 +43,7 @@ public class LoanOfferRepository implements ReactivePanacheMongoRepository<LoanO
      *
      * @param amountRequested
      * @return a uni containing a list of loans that are sufficient to fulfil the loan, or a
-     *     nullItem if there are not enough offers to fulfil that amount
+     * nullItem if there are not enough offers to fulfil that amount
      */
     public Uni<List<LoanOffer>> retrieveLoanOffersThatSumToAtLeastValue(
             final BigDecimal amountRequested) {
@@ -73,10 +75,10 @@ public class LoanOfferRepository implements ReactivePanacheMongoRepository<LoanO
      *
      * @param amountRequested the amount that must be fulfilled
      * @return a Multi of loanOffers that either fulfil the loan, or represent all the loans in the
-     *     database
+     * database
      */
     private Multi<LoanOffer> getLoanPagesUntilLoanOfferValue(final BigDecimal amountRequested) {
-        logger.debug("retrieving loan offers from database");
+        logger.info("retrieving loan offers from database");
 
         AtomicReference<BigDecimal> currentTotal = new AtomicReference<>(new BigDecimal(0));
         ReactivePanacheQuery<LoanOffer> offers = this.findAll(Sort.by("rate"));
@@ -90,9 +92,9 @@ public class LoanOfferRepository implements ReactivePanacheMongoRepository<LoanO
                         offerPage -> {
                             if (offerPage.isEmpty()) return false;
                             return currentTotal
-                                            .getAndAccumulate(
-                                                    sumLoanOffers(offerPage), BigDecimal::add)
-                                            .compareTo(amountRequested)
+                                    .getAndAccumulate(
+                                            sumLoanOffers(offerPage), BigDecimal::add)
+                                    .compareTo(amountRequested)
                                     < 1;
                         })
                 .onItem()

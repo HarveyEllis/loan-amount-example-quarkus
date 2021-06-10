@@ -17,4 +17,12 @@ public class LoanRequestCommand {
         this.amount = amount;
         this.borrowerId = borrowerId;
     }
+
+    @Override
+    public String toString() {
+        return "LoanRequestCommand{" +
+                "amount='" + amount + '\'' +
+                ", borrowerId='" + borrowerId + '\'' +
+                '}';
+    }
 }

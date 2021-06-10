@@ -8,14 +8,15 @@ import com.example.entity.LoanAvailableEvent;
 import com.example.entity.LoanOffer;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.smallrye.mutiny.Uni;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 @RegisterForReflection
@@ -23,18 +24,28 @@ public class LoanAvailabilityService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanAvailabilityService.class);
     // These would probably be somewhere else in actuality, stored either in the loan offer or made
-    // configurable
-    // somewhere.
+    // configurable somewhere.
     private static int numberOfPayments = 36;
     private static int paymentsPerAnnum = 12;
-    @Inject LoanOfferRepository loanOfferRepository;
+    @Inject
+    LoanOfferRepository loanOfferRepository;
 
-    public LoanAvailabilityService() {}
+    public LoanAvailabilityService() {
+    }
 
-    public static List<LoanAndOfferPair> calculateListOfLoansToFulfilAmount(
+    /**
+     * calculates the right combination of loans to return - so that the amounts match the amount requested
+     *
+     * @param amountRequested the amount to fulfil for the loan
+     * @param offers          a list of loan offers to create the fulfilment amount from. Must be ordered by rate lowest to
+     *                        highest to get the best possible combination.
+     * @return a list of paired loans and offers
+     */
+    private static List<LoanAndOfferPair> calculateListOfLoansToFulfilAmount(
             BigDecimal amountRequested, List<LoanOffer> offers) {
         BigDecimal currentTotal = new BigDecimal(0);
         List<LoanAndOfferPair> loans = new ArrayList<>();
+        logger.info("Something here: {}", offers);
         int i = 0;
         while (currentTotal.compareTo(amountRequested) < 0) {
             LoanOffer loanOffer = offers.get(i);

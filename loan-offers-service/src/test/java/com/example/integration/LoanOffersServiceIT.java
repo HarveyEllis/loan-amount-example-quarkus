@@ -3,6 +3,7 @@ package com.example.integration;
 import com.example.entity.LoanAvailableEvent;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -10,8 +11,9 @@ import java.util.UUID;
 import static com.example.integration.TestUtils.*;
 
 @QuarkusTest
-@QuarkusTestResource(value = KafkaTestResourceIT.class)
-@QuarkusTestResource(value = MongoITResource.class)
+@QuarkusTestResource(value = KafkaTestResourceIT.class, restrictToAnnotatedClass = true)
+@QuarkusTestResource(value = MongoITResource.class, restrictToAnnotatedClass = true)
+@TestProfile(IntegrationProfile.class) // run com.example.integration tests in prod mode
 public class LoanOffersServiceIT extends KafkaInitIT {
 
     @Test

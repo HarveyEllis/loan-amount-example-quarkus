@@ -17,7 +17,6 @@ public class MongoITResource implements QuarkusTestResourceLifecycleManager {
         MONGO.start();
         System.setProperty("quarkus.mongodb.connection-string",
                 "mongodb://" + MONGO.getContainerIpAddress() + ":" + MONGO.getFirstMappedPort());
-        System.setProperty("mongodb.port", MONGO.getFirstMappedPort().toString());
         return Collections.emptyMap();
     }
 
